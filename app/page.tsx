@@ -6,7 +6,7 @@ export default function Home() {
       <div className="relative max-w-2xl mx-auto px-6 py-16 sm:py-24 flex flex-col gap-12">
         <header className="flex items-center gap-3 text-xs tracking-[0.3em] text-cyan-neon/80">
           <span className="h-2 w-2 rounded-full bg-cyan-neon shadow-[0_0_12px_#00e5ff]" />
-          NEXT-NOVAS / WEILIES.CHOK
+          NEXTNOVAS / WEILIES.CHOK
         </header>
 
         <section className="flex flex-col gap-6">
@@ -66,12 +66,12 @@ export default function Home() {
               games. No downloads. No accounts to try. Open. Play. Smile.
             </p>
             <a
-              href="https://arcade.next-novas.com"
+              href="https://arcade.nextnovas.com"
               className="group/cta mt-1 inline-flex items-center justify-center gap-3 rounded-md border border-cyan-neon/60 bg-cyan-neon/5 px-5 py-3 text-cyan-neon transition hover:bg-cyan-neon/10 hover:border-cyan-neon hover:shadow-[0_0_24px_rgba(0,229,255,0.35)]"
             >
               <span className="font-bold tracking-widest text-sm">INSERT COIN →</span>
               <span className="text-[10px] opacity-70 group-hover/cta:opacity-100">
-                arcade.next-novas.com
+                arcade.nextnovas.com
               </span>
             </a>
           </div>
@@ -110,7 +110,7 @@ export default function Home() {
               Email
             </a>
           </div>
-          <div className="tracking-widest">© {new Date().getFullYear()} NEXT-NOVAS</div>
+          <div className="tracking-widest">© {new Date().getFullYear()} NEXTNOVAS</div>
         </footer>
       </div>
     </main>

@@ -9,8 +9,8 @@ export const metadata: Metadata = {
     title: "Weilies Chok — Product Manager & Indie Game Builder",
     description:
       "PM by day. Nexus Arcade by night. Retro-neon browser games.",
-    url: "https://next-novas.com",
-    siteName: "next-novas",
+    url: "https://nextnovas.com",
+    siteName: "nextnovas",
     type: "website",
   },
 };
