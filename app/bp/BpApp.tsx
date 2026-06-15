@@ -8,6 +8,8 @@ import Exercises from "./Exercises";
 
 type Member = { email: string; name: string; isAdmin?: boolean };
 type Reading = { id: number; date: string; time: string; sys: number; dia: number; pulse: number; by: string; note?: string };
+type Glucose = { id: number; date: string; time: string; value: number; context: "fasting" | "before" | "after" | "bed" | "other"; by: string; note?: string };
+type FoodLog = { id: number; date: string; time: string; text: string; by: string };
 type Reminder = { id: number; time: string; label: string; enabled: boolean };
 
 const norm = (e: string) => e.trim().toLowerCase();
@@ -40,8 +42,29 @@ function classify(r: { sys: number; dia: number; pulse: number }) {
   return out;
 }
 
+const GLUCOSE_CONTEXT: Record<Glucose["context"], string> = {
+  fasting: "空腹", before: "餐前", after: "餐后", bed: "睡前", other: "其他",
+};
+
+// Reference (mmol/L), based on her lab report interpretation guide.
+function classifyGlucose(value: number, context: Glucose["context"]) {
+  const out: { level: "warn" | "alert"; msg: string }[] = [];
+  if (context === "fasting" || context === "before") {
+    if (value >= 11.1) out.push({ level: "alert", msg: `血糖很高（${value} mmol/L）。请按医生指示处理，必要时就医。` });
+    else if (value >= 7.8) out.push({ level: "warn", msg: `血糖偏高（${value} mmol/L），高于空腹/餐前目标。` });
+    else if (value < 4.0) out.push({ level: "alert", msg: `血糖偏低（${value} mmol/L）。若有冒冷汗/手抖/心慌，请立即补充糖分（如糖水、果汁）并留意。` });
+  } else if (context === "after") {
+    if (value >= 11.1) out.push({ level: "warn", msg: `餐后血糖偏高（${value} mmol/L）。` });
+    else if (value < 4.0) out.push({ level: "alert", msg: `血糖偏低（${value} mmol/L）。请留意低血糖症状。` });
+  } else {
+    if (value >= 11.1) out.push({ level: "warn", msg: `血糖偏高（${value} mmol/L）。` });
+    else if (value < 4.0) out.push({ level: "alert", msg: `血糖偏低（${value} mmol/L）。请留意低血糖症状。` });
+  }
+  return out;
+}
+
 const TABS = [
-  ["add", "记录"], ["history", "历史"], ["chart", "图表"],
+  ["add", "血压"], ["glucose", "血糖/饮食"], ["history", "历史"], ["chart", "图表"],
   ["report", "报表"], ["exercise", "运动"], ["reminder", "提醒"], ["settings", "设置"],
 ] as const;
 
@@ -51,6 +74,8 @@ export default function BpApp({ email, name }: { email: string; name: string; im
   const [view, setView] = useState<string>("add");
   const [family, setFamily] = useState<Member[]>([]);
   const [readings, setReadings] = useState<Reading[]>([]);
+  const [glucose, setGlucose] = useState<Glucose[]>([]);
+  const [food, setFood] = useState<FoodLog[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [toast, setToast] = useState("");
   const me: Member = { email: norm(email), name, isAdmin };
@@ -63,8 +88,12 @@ export default function BpApp({ email, name }: { email: string; name: string; im
   })(); /* eslint-disable-next-line */ }, []);
 
   async function loadAll() {
-    const [rd, rm, f] = await Promise.all([dbGet("readings"), dbGet("reminders"), dbGet("family")]);
+    const [rd, gl, fd, rm, f] = await Promise.all([
+      dbGet("readings"), dbGet("glucose"), dbGet("food"), dbGet("reminders"), dbGet("family"),
+    ]);
     setReadings((rd.data as Reading[]) || []);
+    setGlucose((gl.data as Glucose[]) || []);
+    setFood((fd.data as FoodLog[]) || []);
     let rems = (rm.data as Reminder[]) || [];
     if (rems.length === 0) {
       rems = [
@@ -156,9 +185,10 @@ export default function BpApp({ email, name }: { email: string; name: string; im
 
         <div className="mt-4">
           {view === "add" && <AddView name={name} readings={readings} setReadings={setReadings} />}
+          {view === "glucose" && <GlucoseFoodView name={name} glucose={glucose} setGlucose={setGlucose} food={food} setFood={setFood} />}
           {view === "history" && <HistoryView readings={readings} setReadings={setReadings} />}
-          {view === "chart" && <ChartView readings={readings} />}
-          {view === "report" && <ReportView readings={readings} />}
+          {view === "chart" && <ChartView readings={readings} glucose={glucose} />}
+          {view === "report" && <ReportView readings={readings} glucose={glucose} food={food} />}
           {view === "exercise" && <Exercises />}
           {view === "reminder" && <ReminderView reminders={reminders} setReminders={setReminders} />}
           {view === "settings" && <SettingsView me={me} family={family} setFamily={setFamily} />}
@@ -220,6 +250,142 @@ function AddView({ name, readings, setReadings }: any) {
   );
 }
 
+function GlucoseFoodView({ name, glucose, setGlucose, food, setFood }: any) {
+  // glucose form
+  const [gd, setGd] = useState(todayStr());
+  const [gtm, setGtm] = useState(nowTime());
+  const [gval, setGval] = useState("");
+  const [gctx, setGctx] = useState<Glucose["context"]>("fasting");
+  const [gnote, setGnote] = useState("");
+  const [gflash, setGflash] = useState(false);
+  const gPreview = gval ? classifyGlucose(+gval, gctx) : [];
+
+  async function saveGlucose() {
+    if (!gval) return;
+    const r: Glucose = { id: Date.now(), date: gd, time: gtm, value: +gval, context: gctx, by: name, note: gnote.trim() };
+    const next = [...glucose, r];
+    setGlucose(next); await dbPut("glucose", next);
+    setGval(""); setGnote(""); setGtm(nowTime());
+    setGflash(true); setTimeout(() => setGflash(false), 1500);
+  }
+
+  // food form
+  const [fd, setFd] = useState(todayStr());
+  const [ftm, setFtm] = useState(nowTime());
+  const [ftext, setFtext] = useState("");
+  const [fflash, setFflash] = useState(false);
+
+  async function saveFood() {
+    if (!ftext.trim()) return;
+    const r: FoodLog = { id: Date.now(), date: fd, time: ftm, text: ftext.trim(), by: name };
+    const next = [...food, r];
+    setFood(next); await dbPut("food", next);
+    setFtext(""); setFtm(nowTime());
+    setFflash(true); setTimeout(() => setFflash(false), 1500);
+  }
+
+  async function delGlucose(id: number) {
+    if (!confirm("确定删除这笔血糖记录？")) return;
+    const next = glucose.filter((g: Glucose) => g.id !== id);
+    setGlucose(next); await dbPut("glucose", next);
+  }
+  async function delFood(id: number) {
+    if (!confirm("确定删除这笔饮食记录？")) return;
+    const next = food.filter((f: FoodLog) => f.id !== id);
+    setFood(next); await dbPut("food", next);
+  }
+
+  const recentGlucose = [...glucose].sort((a: Glucose, b: Glucose) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 8);
+  const recentFood = [...food].sort((a: FoodLog, b: FoodLog) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 8);
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <H>新增血糖</H>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="日期"><input type="date" className="inp" value={gd} onChange={(e) => setGd(e.target.value)} /></Field>
+          <Field label="时间"><input type="time" className="inp" value={gtm} onChange={(e) => setGtm(e.target.value)} /></Field>
+          <Field label="血糖值 (mmol/L)"><input type="number" step="0.1" className="inp" value={gval} onChange={(e) => setGval(e.target.value)} placeholder="例如 7.2" /></Field>
+          <Field label="测量时机">
+            <select className="inp" value={gctx} onChange={(e) => setGctx(e.target.value as Glucose["context"])}>
+              {Object.entries(GLUCOSE_CONTEXT).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </Field>
+          <div className="col-span-2">
+            <Field label="备注（可选）"><input className="inp" value={gnote} onChange={(e) => setGnote(e.target.value)} /></Field>
+          </div>
+        </div>
+        {gPreview.map((p, i) => (
+          <div key={i} className={`mt-3 rounded-lg p-3 text-sm ${p.level === "alert" ? "bg-red-50 text-red-700 border border-red-200" : "bg-orange-50 text-orange-700 border border-orange-200"}`}>⚠️ {p.msg}</div>
+        ))}
+        <p className="text-xs text-gray-400 mt-3">
+          参考：空腹/餐前 3.9–7.7 正常，7.8–11.0 偏高，≥11.1 糖尿病范围；&lt;4.0 偏低需留意低血糖。
+        </p>
+        <button onClick={saveGlucose} className="w-full mt-4 bg-teal-700 text-white rounded-lg py-2.5 font-medium hover:bg-teal-800">
+          {gflash ? "已保存 ✓" : "保存血糖"}
+        </button>
+      </Card>
+
+      <Card>
+        <H>新增饮食记录</H>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="日期"><input type="date" className="inp" value={fd} onChange={(e) => setFd(e.target.value)} /></Field>
+          <Field label="时间"><input type="time" className="inp" value={ftm} onChange={(e) => setFtm(e.target.value)} /></Field>
+          <div className="col-span-2">
+            <Field label="吃了什么"><input className="inp" value={ftext} onChange={(e) => setFtext(e.target.value)} placeholder="例如：白粥 + 一个鸡蛋" /></Field>
+          </div>
+        </div>
+        <button onClick={saveFood} className="w-full mt-4 bg-teal-700 text-white rounded-lg py-2.5 font-medium hover:bg-teal-800">
+          {fflash ? "已保存 ✓" : "保存饮食"}
+        </button>
+        <style>{`.inp{width:100%;border:1px solid #d1d5db;border-radius:.5rem;padding:.5rem .75rem}`}</style>
+      </Card>
+
+      <Card>
+        <H>最近血糖</H>
+        {recentGlucose.length === 0 ? <p className="text-gray-400 text-sm">还没有记录。</p> : (
+          <div className="space-y-2">
+            {recentGlucose.map((g: Glucose) => {
+              const flags = classifyGlucose(g.value, g.context);
+              const bad = flags.some((f) => f.level === "alert");
+              const warn = flags.some((f) => f.level === "warn");
+              return (
+                <div key={g.id} className="border rounded-lg p-3 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-gray-400">{g.date} {g.time} · {GLUCOSE_CONTEXT[g.context]} · {g.by}</div>
+                    <div className={`mt-1 ${bad ? "text-red-600 font-bold" : warn ? "text-orange-600 font-semibold" : "text-gray-800"}`}>
+                      {g.value} <span className="text-xs text-gray-400">mmol/L</span>
+                    </div>
+                    {g.note && <div className="text-xs text-gray-500 mt-1">{g.note}</div>}
+                  </div>
+                  <button onClick={() => delGlucose(g.id)} className="text-xs text-gray-400 hover:text-red-500">✕</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
+      <Card>
+        <H>最近饮食</H>
+        {recentFood.length === 0 ? <p className="text-gray-400 text-sm">还没有记录。</p> : (
+          <div className="space-y-2">
+            {recentFood.map((f: FoodLog) => (
+              <div key={f.id} className="border rounded-lg p-3 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-gray-400">{f.date} {f.time} · {f.by}</div>
+                  <div className="mt-1 text-gray-800">{f.text}</div>
+                </div>
+                <button onClick={() => delFood(f.id)} className="text-xs text-gray-400 hover:text-red-500">✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 function HistoryView({ readings, setReadings }: any) {
   const sorted = [...readings].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
   async function del(id: number) {
@@ -255,9 +421,16 @@ function HistoryView({ readings, setReadings }: any) {
   );
 }
 
-function ChartView({ readings }: any) {
-  const data = [...readings].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
-    .map((r: Reading) => ({ label: `${r.date.slice(5)} ${r.time}`, SYS: r.sys, DIA: r.dia, 心率: r.pulse }));
+function ChartView({ readings, glucose }: any) {
+  // Merge BP readings and glucose readings into one timeline by date+time.
+  const bpPoints = [...readings].map((r: Reading) => ({ key: r.date + " " + r.time, label: `${r.date.slice(5)} ${r.time}`, SYS: r.sys, DIA: r.dia, 心率: r.pulse }));
+  const glPoints = [...(glucose || [])].map((g: Glucose) => ({ key: g.date + " " + g.time, label: `${g.date.slice(5)} ${g.time}`, 血糖: g.value }));
+  const byKey = new Map<string, any>();
+  for (const p of bpPoints) byKey.set(p.key, { ...(byKey.get(p.key) || {}), ...p });
+  for (const p of glPoints) byKey.set(p.key, { ...(byKey.get(p.key) || {}), ...p });
+  const data = [...byKey.values()].sort((a, b) => a.key.localeCompare(b.key));
+  const hasGlucose = glPoints.length > 0;
+
   return (
     <Card>
       <H>趋势图</H>
@@ -268,23 +441,25 @@ function ChartView({ readings }: any) {
               <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="label" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 11 }} domain={[40, 160]} />
+                <YAxis yAxisId="left" tick={{ fontSize: 11 }} domain={[40, 160]} />
+                {hasGlucose && <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} domain={[0, 16]} />}
                 <Tooltip /><Legend />
-                <ReferenceLine y={100} stroke="#dc2626" strokeDasharray="4 4" />
-                <Line type="monotone" dataKey="SYS" stroke="#0f766e" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="DIA" stroke="#0ea5e9" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="心率" stroke="#dc2626" strokeWidth={2} dot={{ r: 3 }} />
+                <ReferenceLine yAxisId="left" y={100} stroke="#dc2626" strokeDasharray="4 4" />
+                <Line yAxisId="left" type="monotone" dataKey="SYS" stroke="#0f766e" strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                <Line yAxisId="left" type="monotone" dataKey="DIA" stroke="#0ea5e9" strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                <Line yAxisId="left" type="monotone" dataKey="心率" stroke="#dc2626" strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                {hasGlucose && <Line yAxisId="right" type="monotone" dataKey="血糖" stroke="#9333ea" strokeWidth={2} dot={{ r: 3 }} connectNulls />}
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-xs text-gray-400 mt-1">— — 红色虚线 = 心率 100 参考线</p>
+          <p className="text-xs text-gray-400 mt-1">— — 红色虚线 = 心率 100 参考线{hasGlucose && "；紫色 = 血糖 (mmol/L，右侧刻度)"}</p>
         </>
       )}
     </Card>
   );
 }
 
-function ReportView({ readings }: any) {
+function ReportView({ readings, glucose, food }: any) {
   const [copied, setCopied] = useState(false);
   const n = readings.length;
   const sorted = [...readings].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
@@ -292,21 +467,47 @@ function ReportView({ readings }: any) {
   const pulses = readings.map((r: Reading) => r.pulse);
   const high = pulses.filter((p: number) => p > 100).length;
   const range = n ? `${sorted[0].date} → ${sorted[n - 1].date}` : "-";
-  const text = n === 0 ? "" :
+
+  const gSorted = [...(glucose || [])].sort((a: Glucose, b: Glucose) => (a.date + a.time).localeCompare(b.date + b.time));
+  const gn = gSorted.length;
+  const gAvg = gn ? (gSorted.reduce((s: number, g: Glucose) => s + g.value, 0) / gn).toFixed(1) : "-";
+  const gHigh = gSorted.filter((g: Glucose) => g.value >= 11.1).length;
+  const gLow = gSorted.filter((g: Glucose) => g.value < 4.0).length;
+
+  const fSorted = [...(food || [])].sort((a: FoodLog, b: FoodLog) => (a.date + a.time).localeCompare(b.date + b.time));
+
+  let text = n === 0 ? "" :
     `妈妈血压心率记录摘要\n日期范围: ${range}\n记录次数: ${n}\n血压平均: ${avg("sys")}/${avg("dia")} mmHg\n心率平均: ${avg("pulse")} /min (范围 ${Math.min(...pulses)}–${Math.max(...pulses)})\n心率>100次数: ${high} / ${n}\n\n明细:\n` +
     sorted.map((r: Reading) => `${r.date} ${r.time}  ${r.sys}/${r.dia}  ${r.pulse}${r.pulse > 100 ? " *" : ""}  ${r.by}${r.note ? "  " + r.note : ""}`).join("\n");
+
+  if (gn > 0) {
+    text += `\n\n血糖记录摘要\n记录次数: ${gn}\n平均血糖: ${gAvg} mmol/L\n≥11.1 (偏高) 次数: ${gHigh} / ${gn}\n<4.0 (偏低) 次数: ${gLow} / ${gn}\n\n明细:\n` +
+      gSorted.map((g: Glucose) => `${g.date} ${g.time}  ${g.value} mmol/L (${GLUCOSE_CONTEXT[g.context]})${g.value >= 11.1 || g.value < 4.0 ? " *" : ""}  ${g.by}${g.note ? "  " + g.note : ""}`).join("\n");
+  }
+  if (fSorted.length > 0) {
+    text += `\n\n饮食记录\n` + fSorted.map((f: FoodLog) => `${f.date} ${f.time}  ${f.text}  (${f.by})`).join("\n");
+  }
+
   return (
     <Card>
       <H>给医生的报表</H>
-      {n === 0 ? <p className="text-gray-400 text-sm">还没有记录。</p> : (
+      {n === 0 && gn === 0 ? <p className="text-gray-400 text-sm">还没有记录。</p> : (
         <>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <Stat label="日期范围" value={range} />
-            <Stat label="记录次数" value={n} />
-            <Stat label="血压平均" value={`${avg("sys")}/${avg("dia")}`} />
-            <Stat label="心率平均" value={`${avg("pulse")} /min`} />
-            <Stat label="心率范围" value={`${Math.min(...pulses)}–${Math.max(...pulses)}`} />
-            <Stat label="心率>100次数" value={`${high} / ${n}`} warn={high > 0} />
+            {n > 0 && <>
+              <Stat label="日期范围" value={range} />
+              <Stat label="记录次数" value={n} />
+              <Stat label="血压平均" value={`${avg("sys")}/${avg("dia")}`} />
+              <Stat label="心率平均" value={`${avg("pulse")} /min`} />
+              <Stat label="心率范围" value={`${Math.min(...pulses)}–${Math.max(...pulses)}`} />
+              <Stat label="心率>100次数" value={`${high} / ${n}`} warn={high > 0} />
+            </>}
+            {gn > 0 && <>
+              <Stat label="血糖记录次数" value={gn} />
+              <Stat label="血糖平均" value={`${gAvg} mmol/L`} />
+              <Stat label="血糖偏高(≥11.1)" value={`${gHigh} / ${gn}`} warn={gHigh > 0} />
+              <Stat label="血糖偏低(<4.0)" value={`${gLow} / ${gn}`} warn={gLow > 0} />
+            </>}
           </div>
           <div className="flex gap-2 mt-4">
             <button onClick={() => { navigator.clipboard?.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
@@ -377,11 +578,11 @@ function SettingsView({ me, family, setFamily }: any) {
       </div>
       {me.isAdmin ? (
         <div className="flex gap-2 mt-3">
-          <input className="border rounded-lg px-3 py-2 text-sm flex-1" placeholder="加入家人 Gmail" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+          <input className="border rounded-lg px-3 py-2 text-sm flex-1" placeholder="加入家人 Email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
           <button onClick={add} className="bg-teal-700 text-white rounded-lg px-4 text-sm font-medium">加入</button>
         </div>
       ) : <p className="text-xs text-gray-400 mt-3">只有管理员能修改名单。</p>}
-      <p className="text-xs text-gray-400 mt-4 leading-relaxed">加入的家人需用<b>该 Gmail</b> Google 登录才能进。身份由 Google 验证，名单决定能否看到数据。</p>
+      <p className="text-xs text-gray-400 mt-4 leading-relaxed">加入的家人用<b>该 Email</b> 登录时会收到验证码，输入验证码即可进入。名单决定能否看到数据。</p>
     </Card>
   );
 }

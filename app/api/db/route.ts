@@ -3,7 +3,7 @@ import { redis } from "@/lib/redis";
 import { getSessionEmail } from "@/lib/session";
 
 // Identity comes from the signed session cookie (set after OTP verification).
-const COLS = ["readings", "family", "reminders", "config"] as const;
+const COLS = ["readings", "glucose", "food", "family", "reminders", "config"] as const;
 type Col = (typeof COLS)[number];
 const keyFor = (c: string) => `bp:${c}`;
 type Member = { email: string; name: string; isAdmin?: boolean };
