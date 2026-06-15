@@ -4,7 +4,6 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, Legend,
 } from "recharts";
-import { signOut } from "next-auth/react";
 import Exercises from "./Exercises";
 
 type Member = { email: string; name: string; isAdmin?: boolean };
@@ -14,6 +13,11 @@ type Reminder = { id: number; time: string; label: string; enabled: boolean };
 const norm = (e: string) => e.trim().toLowerCase();
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const nowTime = () => new Date().toTimeString().slice(0, 5);
+
+async function doLogout() {
+  await fetch("/api/auth/logout", { method: "POST" });
+  window.location.href = "/bp";
+}
 
 async function dbGet(col: string) {
   const r = await fetch(`/api/db?col=${col}`);
@@ -138,7 +142,7 @@ export default function BpApp({ email, name }: { email: string; name: string; im
             <h1 className="text-xl font-bold text-teal-800">妈妈血压心率记录</h1>
             <p className="text-xs text-gray-500">{name}{isAdmin ? " · 管理员" : ""}</p>
           </div>
-          <button onClick={() => signOut({ callbackUrl: "/bp" })} className="text-xs text-gray-500 underline">登出</button>
+          <button onClick={doLogout} className="text-xs text-gray-500 underline">登出</button>
         </div>
 
         <div className="flex gap-1 mt-4 bg-white rounded-xl p-1 shadow-sm overflow-x-auto">
@@ -176,7 +180,7 @@ function Centered({ children }: { children: React.ReactNode }) {
   );
 }
 function SignOutLink() {
-  return <button onClick={() => signOut({ callbackUrl: "/bp" })} className="text-xs text-gray-400 underline mt-4">用其他帐号登录</button>;
+  return <button onClick={doLogout} className="text-xs text-gray-400 underline mt-4">用其他帐号登录</button>;
 }
 function Card({ children }: { children: React.ReactNode }) { return <div className="bg-white rounded-2xl shadow-sm p-5">{children}</div>; }
 function H({ children }: { children: React.ReactNode }) { return <h2 className="font-semibold text-teal-800 mb-3">{children}</h2>; }

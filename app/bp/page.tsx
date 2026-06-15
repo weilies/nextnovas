@@ -1,16 +1,9 @@
-import { auth } from "@/auth";
+import { getSessionEmail } from "@/lib/session";
 import SignIn from "./SignIn";
 import BpApp from "./BpApp";
 
 export default async function Page() {
-  const session = await auth();
-  const email = session?.user?.email;
+  const email = await getSessionEmail();
   if (!email) return <SignIn />;
-  return (
-    <BpApp
-      email={email}
-      name={session.user?.name || email}
-      image={session.user?.image || ""}
-    />
-  );
+  return <BpApp email={email} name={email.split("@")[0]} />;
 }

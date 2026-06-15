@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
-import { auth } from "@/auth";
+import { getSessionEmail } from "@/lib/session";
 
-// Identity now comes from the verified Google session — NOT a spoofable header.
+// Identity comes from the signed session cookie (set after OTP verification).
 const COLS = ["readings", "family", "reminders", "config"] as const;
 type Col = (typeof COLS)[number];
 const keyFor = (c: string) => `bp:${c}`;
@@ -17,8 +17,7 @@ export async function GET(req: Request) {
   const col = new URL(req.url).searchParams.get("col") as Col;
   if (!COLS.includes(col)) return NextResponse.json({ error: "bad col" }, { status: 400 });
 
-  const session = await auth();
-  const email = norm(session?.user?.email);
+  const email = norm(await getSessionEmail());
   if (!email) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
 
   const family = await getFamily();
@@ -31,7 +30,7 @@ export async function GET(req: Request) {
       member,
       isAdmin,
       list: member ? family : [],
-      me: { email, name: session?.user?.name || email },
+      me: { email, name: email.split("@")[0] },
     });
   }
 
@@ -44,8 +43,7 @@ export async function PUT(req: Request) {
   const col = new URL(req.url).searchParams.get("col") as Col;
   if (!COLS.includes(col)) return NextResponse.json({ error: "bad col" }, { status: 400 });
 
-  const session = await auth();
-  const email = norm(session?.user?.email);
+  const email = norm(await getSessionEmail());
   if (!email) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
 
   const body = await req.json();
