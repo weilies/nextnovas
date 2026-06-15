@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.RESEND_FROM || "妈妈健康记录 <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM || "妈妈健康记录 <noreply@nextnovas.com>",
       to: [email],
       subject: `验证码 ${code} - 妈妈血压心率记录`,
       html: `<div style="font-family:sans-serif;font-size:16px;color:#1f2937">
