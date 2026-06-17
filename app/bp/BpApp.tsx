@@ -504,7 +504,7 @@ function ReportsView({ name, reports, setReports }: any) {
                   <div className="text-gray-800 font-medium truncate">{r.title}</div>
                   {typeof r.hba1c === "number" && r.hba1c ? <div className="text-sm text-purple-700">HbA1c {r.hba1c}%</div> : null}
                   {r.note && <div className="text-xs text-gray-500 mt-0.5">{r.note}</div>}
-                  <a href={r.url} target="_blank" rel="noreferrer" className="text-sm text-teal-700 underline">查看 / 下载文件</a>
+                  <a href={`/api/report-file?u=${encodeURIComponent(r.url)}`} target="_blank" rel="noreferrer" className="text-sm text-teal-700 underline">查看 / 下载文件</a>
                 </div>
                 <button onClick={() => del(r.id)} className="text-xs text-gray-400 hover:text-red-500 shrink-0">✕</button>
               </div>
