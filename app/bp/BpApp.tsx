@@ -411,7 +411,8 @@ function ReportsView({ name, reports, setReports }: any) {
       const up = await fetch("/api/upload", { method: "POST", body: fd });
       if (!up.ok) {
         const d = await up.json().catch(() => ({}));
-        setErr(d.error === "too_large" ? "文件太大（上限约 4MB），请压缩或拍清楚一点。" : "上传失败，请重试。");
+        if (d.error === "too_large") setErr("文件太大（上限约 4MB），请压缩或拍清楚一点。");
+        else setErr(`上传失败：${d.detail || d.error || "未知错误"}`);
         return;
       }
       const blob = await up.json();
