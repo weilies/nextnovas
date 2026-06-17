@@ -10,6 +10,7 @@ type Member = { email: string; name: string; isAdmin?: boolean };
 type Reading = { id: number; date: string; time: string; sys: number; dia: number; pulse: number; by: string; note?: string };
 type Glucose = { id: number; date: string; time: string; value: number; context: "fasting" | "before" | "after" | "bed" | "other"; by: string; note?: string };
 type FoodLog = { id: number; date: string; time: string; text: string; by: string };
+type ClinicalReport = { id: number; date: string; title: string; hba1c?: number | null; url: string; contentType?: string; note?: string; by: string };
 type Reminder = { id: number; time: string; label: string; enabled: boolean };
 
 const norm = (e: string) => e.trim().toLowerCase();
@@ -64,7 +65,7 @@ function classifyGlucose(value: number, context: Glucose["context"]) {
 }
 
 const TABS = [
-  ["add", "血压"], ["glucose", "血糖/饮食"], ["history", "历史"], ["chart", "图表"],
+  ["add", "血压"], ["glucose", "血糖/饮食"], ["reports", "报告"], ["history", "历史"], ["chart", "图表"],
   ["report", "报表"], ["exercise", "运动"], ["reminder", "提醒"], ["settings", "设置"],
 ] as const;
 
@@ -76,6 +77,7 @@ export default function BpApp({ email, name }: { email: string; name: string; im
   const [readings, setReadings] = useState<Reading[]>([]);
   const [glucose, setGlucose] = useState<Glucose[]>([]);
   const [food, setFood] = useState<FoodLog[]>([]);
+  const [reports, setReports] = useState<ClinicalReport[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [toast, setToast] = useState("");
   const me: Member = { email: norm(email), name, isAdmin };
@@ -88,12 +90,13 @@ export default function BpApp({ email, name }: { email: string; name: string; im
   })(); /* eslint-disable-next-line */ }, []);
 
   async function loadAll() {
-    const [rd, gl, fd, rm, f] = await Promise.all([
-      dbGet("readings"), dbGet("glucose"), dbGet("food"), dbGet("reminders"), dbGet("family"),
+    const [rd, gl, fd, rp, rm, f] = await Promise.all([
+      dbGet("readings"), dbGet("glucose"), dbGet("food"), dbGet("reports"), dbGet("reminders"), dbGet("family"),
     ]);
     setReadings((rd.data as Reading[]) || []);
     setGlucose((gl.data as Glucose[]) || []);
     setFood((fd.data as FoodLog[]) || []);
+    setReports((rp.data as ClinicalReport[]) || []);
     let rems = (rm.data as Reminder[]) || [];
     if (rems.length === 0) {
       rems = [
@@ -186,6 +189,7 @@ export default function BpApp({ email, name }: { email: string; name: string; im
         <div className="mt-4">
           {view === "add" && <AddView name={name} readings={readings} setReadings={setReadings} />}
           {view === "glucose" && <GlucoseFoodView name={name} glucose={glucose} setGlucose={setGlucose} food={food} setFood={setFood} />}
+          {view === "reports" && <ReportsView name={name} reports={reports} setReports={setReports} />}
           {view === "history" && <HistoryView readings={readings} setReadings={setReadings} />}
           {view === "chart" && <ChartView readings={readings} glucose={glucose} />}
           {view === "report" && <ReportView readings={readings} glucose={glucose} food={food} />}
@@ -377,6 +381,131 @@ function GlucoseFoodView({ name, glucose, setGlucose, food, setFood }: any) {
                   <div className="mt-1 text-gray-800">{f.text}</div>
                 </div>
                 <button onClick={() => delFood(f.id)} className="text-xs text-gray-400 hover:text-red-500">✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function ReportsView({ name, reports, setReports }: any) {
+  const [date, setDate] = useState(todayStr());
+  const [title, setTitle] = useState("");
+  const [hba1c, setHba1c] = useState("");
+  const [note, setNote] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState("");
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  async function save() {
+    setErr("");
+    if (!file) { setErr("请先选择报告文件（PDF 或照片）。"); return; }
+    if (!title.trim()) { setErr("请填写报告名称，例如「6月化验报告」。"); return; }
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const up = await fetch("/api/upload", { method: "POST", body: fd });
+      if (!up.ok) {
+        const d = await up.json().catch(() => ({}));
+        setErr(d.error === "too_large" ? "文件太大（上限约 4MB），请压缩或拍清楚一点。" : "上传失败，请重试。");
+        return;
+      }
+      const blob = await up.json();
+      const rec: ClinicalReport = {
+        id: Date.now(), date, title: title.trim(),
+        hba1c: hba1c ? +hba1c : null,
+        url: blob.url, contentType: blob.contentType, note: note.trim(), by: name,
+      };
+      const next = [...reports, rec];
+      setReports(next); await dbPut("reports", next);
+      setTitle(""); setHba1c(""); setNote(""); setFile(null);
+      if (fileRef.current) fileRef.current.value = "";
+    } catch {
+      setErr("网络错误，请重试。");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function del(id: number) {
+    if (!confirm("确定删除这份报告记录？（已上传的文件链接也会从列表移除）")) return;
+    const next = reports.filter((r: ClinicalReport) => r.id !== id);
+    setReports(next); await dbPut("reports", next);
+  }
+
+  const sorted = [...reports].sort((a: ClinicalReport, b: ClinicalReport) => b.date.localeCompare(a.date));
+  const hbaPoints = [...reports]
+    .filter((r: ClinicalReport) => typeof r.hba1c === "number" && r.hba1c)
+    .sort((a: ClinicalReport, b: ClinicalReport) => a.date.localeCompare(b.date))
+    .map((r: ClinicalReport) => ({ label: r.date, HbA1c: r.hba1c }));
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <H>上传化验报告</H>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="报告日期"><input type="date" className="inp" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
+          <Field label="HbA1c % (可选)"><input type="number" step="0.1" className="inp" value={hba1c} onChange={(e) => setHba1c(e.target.value)} placeholder="例如 9.9" /></Field>
+          <div className="col-span-2">
+            <Field label="报告名称"><input className="inp" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：6月 Innoquest 化验报告" /></Field>
+          </div>
+          <div className="col-span-2">
+            <Field label="备注（可选）"><input className="inp" value={note} onChange={(e) => setNote(e.target.value)} placeholder="例如：肝功能偏高，待复查" /></Field>
+          </div>
+          <div className="col-span-2">
+            <Field label="报告文件（PDF 或拍照）">
+              <input ref={fileRef} type="file" accept="application/pdf,image/*"
+                className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-50 file:px-3 file:py-2 file:text-teal-700"
+                onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            </Field>
+          </div>
+        </div>
+        {err && <div className="mt-3 rounded-lg p-3 text-sm bg-red-50 text-red-700 border border-red-200">{err}</div>}
+        <button onClick={save} disabled={uploading}
+          className="w-full mt-4 bg-teal-700 text-white rounded-lg py-2.5 font-medium hover:bg-teal-800 disabled:opacity-50">
+          {uploading ? "上传中…" : "上传并保存"}
+        </button>
+        <p className="text-xs text-gray-400 mt-3">文件上限约 4MB。HbA1c 填了之后会自动画进下面的趋势图。</p>
+        <style>{`.inp{width:100%;border:1px solid #d1d5db;border-radius:.5rem;padding:.5rem .75rem}`}</style>
+      </Card>
+
+      {hbaPoints.length >= 1 && (
+        <Card>
+          <H>HbA1c 趋势（目标 ~7–8%）</H>
+          <div style={{ width: "100%", height: 240 }}>
+            <ResponsiveContainer>
+              <LineChart data={hbaPoints} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 11 }} domain={[5, 12]} />
+                <Tooltip />
+                <ReferenceLine y={7} stroke="#15803d" strokeDasharray="4 4" />
+                <Line type="monotone" dataKey="HbA1c" stroke="#9333ea" strokeWidth={2} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">— — 绿线 = 目标 7%。越往下越好。</p>
+        </Card>
+      )}
+
+      <Card>
+        <H>已上传的报告</H>
+        {sorted.length === 0 ? <p className="text-gray-400 text-sm">还没有上传报告。</p> : (
+          <div className="space-y-2">
+            {sorted.map((r: ClinicalReport) => (
+              <div key={r.id} className="border rounded-lg p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-xs text-gray-400">{r.date} · {r.by}</div>
+                  <div className="text-gray-800 font-medium truncate">{r.title}</div>
+                  {typeof r.hba1c === "number" && r.hba1c ? <div className="text-sm text-purple-700">HbA1c {r.hba1c}%</div> : null}
+                  {r.note && <div className="text-xs text-gray-500 mt-0.5">{r.note}</div>}
+                  <a href={r.url} target="_blank" rel="noreferrer" className="text-sm text-teal-700 underline">查看 / 下载文件</a>
+                </div>
+                <button onClick={() => del(r.id)} className="text-xs text-gray-400 hover:text-red-500 shrink-0">✕</button>
               </div>
             ))}
           </div>
