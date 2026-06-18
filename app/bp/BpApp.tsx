@@ -80,7 +80,21 @@ export default function BpApp({ email, name }: { email: string; name: string; im
   const [reports, setReports] = useState<ClinicalReport[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [toast, setToast] = useState("");
+  const [fontScale, setFontScale] = useState(1.5);
   const me: Member = { email: norm(email), name, isAdmin };
+
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("bp-font-scale") : null;
+    if (saved) setFontScale(parseFloat(saved));
+  }, []);
+  useEffect(() => {
+    if (typeof document !== "undefined") document.documentElement.style.fontSize = `${fontScale * 16}px`;
+    return () => { if (typeof document !== "undefined") document.documentElement.style.fontSize = ""; };
+  }, [fontScale]);
+  function changeFontScale(v: number) {
+    setFontScale(v);
+    if (typeof window !== "undefined") localStorage.setItem("bp-font-scale", String(v));
+  }
 
   useEffect(() => { (async () => {
     const f = await dbGet("family");
@@ -195,7 +209,7 @@ export default function BpApp({ email, name }: { email: string; name: string; im
           {view === "report" && <ReportView readings={readings} glucose={glucose} food={food} />}
           {view === "exercise" && <Exercises />}
           {view === "reminder" && <ReminderView reminders={reminders} setReminders={setReminders} />}
-          {view === "settings" && <SettingsView me={me} family={family} setFamily={setFamily} />}
+          {view === "settings" && <SettingsView me={me} family={family} setFamily={setFamily} fontScale={fontScale} changeFontScale={changeFontScale} />}
         </div>
 
         <p className="text-xs text-gray-400 mt-4 text-center leading-relaxed">
@@ -684,7 +698,7 @@ function ReminderView({ reminders, setReminders }: any) {
   );
 }
 
-function SettingsView({ me, family, setFamily }: any) {
+function SettingsView({ me, family, setFamily, fontScale, changeFontScale }: any) {
   const [newEmail, setNewEmail] = useState("");
   async function add() {
     const e = norm(newEmail); if (!e || family.some((m: Member) => m.email === e)) { setNewEmail(""); return; }
@@ -695,25 +709,45 @@ function SettingsView({ me, family, setFamily }: any) {
     const next = family.filter((m: Member) => m.email !== e);
     setFamily(next); await dbPut("family", next);
   }
+  const fontOptions: { v: number; label: string }[] = [
+    { v: 1, label: "当前大小" },
+    { v: 1.2, label: "1.2x 大字" },
+    { v: 1.5, label: "1.5x 更大字" },
+  ];
   return (
-    <Card>
-      <H>设置 · 家人名单</H>
-      <div className="space-y-2">
-        {family.map((m: Member) => (
-          <div key={m.email} className="flex items-center justify-between border rounded-lg px-3 py-2 text-sm">
-            <span>{m.email}{m.isAdmin && <span className="text-teal-700 text-xs"> · 管理员</span>}{m.email === me.email && <span className="text-gray-400 text-xs"> (你)</span>}</span>
-            {me.isAdmin && !m.isAdmin && <button onClick={() => remove(m.email)} className="text-xs text-gray-400 hover:text-red-500">移除</button>}
-          </div>
-        ))}
-      </div>
-      {me.isAdmin ? (
-        <div className="flex gap-2 mt-3">
-          <input className="border rounded-lg px-3 py-2 text-sm flex-1" placeholder="加入家人 Email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-          <button onClick={add} className="bg-teal-700 text-white rounded-lg px-4 text-sm font-medium">加入</button>
+    <div className="space-y-4">
+      <Card>
+        <H>字体大小</H>
+        <div className="grid grid-cols-3 gap-2">
+          {fontOptions.map((o) => (
+            <button key={o.v} onClick={() => changeFontScale(o.v)}
+              className={`rounded-lg py-3 text-sm font-medium border-2 ${fontScale === o.v ? "border-teal-700 bg-teal-50 text-teal-800" : "border-gray-200 text-gray-600"}`}>
+              {o.label}
+            </button>
+          ))}
         </div>
-      ) : <p className="text-xs text-gray-400 mt-3">只有管理员能修改名单。</p>}
-      <p className="text-xs text-gray-400 mt-4 leading-relaxed">加入的家人用<b>该 Email</b> 登录时会收到验证码，输入验证码即可进入。名单决定能否看到数据。</p>
-    </Card>
+        <p className="text-xs text-gray-400 mt-3">设置只影响这个手机/浏览器，每个人可以自己调整。默认是 1.5x，方便长辈阅读。</p>
+      </Card>
+
+      <Card>
+        <H>设置 · 家人名单</H>
+        <div className="space-y-2">
+          {family.map((m: Member) => (
+            <div key={m.email} className="flex items-center justify-between border rounded-lg px-3 py-2 text-sm">
+              <span>{m.email}{m.isAdmin && <span className="text-teal-700 text-xs"> · 管理员</span>}{m.email === me.email && <span className="text-gray-400 text-xs"> (你)</span>}</span>
+              {me.isAdmin && !m.isAdmin && <button onClick={() => remove(m.email)} className="text-xs text-gray-400 hover:text-red-500">移除</button>}
+            </div>
+          ))}
+        </div>
+        {me.isAdmin ? (
+          <div className="flex gap-2 mt-3">
+            <input className="border rounded-lg px-3 py-2 text-sm flex-1" placeholder="加入家人 Email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+            <button onClick={add} className="bg-teal-700 text-white rounded-lg px-4 text-sm font-medium">加入</button>
+          </div>
+        ) : <p className="text-xs text-gray-400 mt-3">只有管理员能修改名单。</p>}
+        <p className="text-xs text-gray-400 mt-4 leading-relaxed">加入的家人用<b>该 Email</b> 登录时会收到验证码，输入验证码即可进入。名单决定能否看到数据。</p>
+      </Card>
+    </div>
   );
 }
 

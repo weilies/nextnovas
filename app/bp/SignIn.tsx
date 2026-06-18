@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -8,6 +8,13 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("bp-font-scale");
+    const scale = saved ? parseFloat(saved) : 1.5;
+    document.documentElement.style.fontSize = `${scale * 16}px`;
+    return () => { document.documentElement.style.fontSize = ""; };
+  }, []);
 
   async function sendCode() {
     setErr(""); setInfo(""); setLoading(true);
