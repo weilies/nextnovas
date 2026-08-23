@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Weilies Chok — Product Manager & Indie Game Builder",
+  title: "Weilies Chok — Product Manager, Integration & Platform Strategy",
   description:
-    "Weilies Chok. Product Manager by day, building Nexus Arcade — retro-neon browser games — by night.",
+    "Weilies Chok. Senior Product Manager at BIPO, leading integration strategy across a global HRMS, EOR, and GPO platform serving 5,500+ clients in 170+ countries.",
   openGraph: {
-    title: "Weilies Chok — Product Manager & Indie Game Builder",
+    title: "Weilies Chok — Product Manager, Integration & Platform Strategy",
     description:
-      "PM by day. Nexus Arcade by night. Retro-neon browser games.",
+      "Senior Product Manager at BIPO. Integration strategy for a global HRMS, EOR, and GPO platform.",
     url: "https://nextnovas.com",
     siteName: "nextnovas",
     type: "website",

@@ -1,118 +1,379 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import "./portfolio.css";
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--pf-font-display",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--pf-font-body",
+});
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--pf-font-mono",
+});
+
 export default function Home() {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const reveals = root.querySelectorAll(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("in-view");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    reveals.forEach((el) => io.observe(el));
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const traces = root.querySelectorAll<SVGPathElement>(".trace");
+    traces.forEach((path, i) => {
+      const len = path.getTotalLength();
+      if (reduceMotion) {
+        path.style.strokeDasharray = "none";
+        return;
+      }
+      if (!path.classList.contains("building")) {
+        path.style.strokeDasharray = String(len);
+        path.style.strokeDashoffset = String(len);
+        path.style.transition = `stroke-dashoffset 1.1s ease ${0.15 + i * 0.12}s`;
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            path.style.strokeDashoffset = "0";
+          })
+        );
+      }
+    });
+
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      <div className="grid-bg absolute inset-0 pointer-events-none" aria-hidden />
+    <div
+      ref={rootRef}
+      className={`pf-root ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+    >
+      <header className="pf-nav">
+        <div className="pf-nav-inner">
+          <span className="pf-logo">WEILIES CHOK</span>
+          <a className="pf-nav-resume" href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+            Résumé ↓
+          </a>
+        </div>
+      </header>
 
-      <div className="relative max-w-2xl mx-auto px-6 py-16 sm:py-24 flex flex-col gap-12">
-        <header className="flex items-center gap-3 text-xs tracking-[0.3em] text-cyan-neon/80">
-          <span className="h-2 w-2 rounded-full bg-cyan-neon shadow-[0_0_12px_#00e5ff]" />
-          NEXTNOVAS / WEILIES.CHOK
-        </header>
+      <main className="wrap">
+        <section className="hero">
+          <div className="hero-text">
+            <p className="eyebrow">Product · Integration · Platform Strategy</p>
+            <h1>Weilies Chok</h1>
+            <p className="role">Senior Product Manager, BIPO — Singapore</p>
+            <p className="lede">
+              I lead integration strategy for BIPO&apos;s global HRMS, EOR, and GPO platform — architecting
+              how systems like Workday, Larksuite, and DocuSign connect into the core, for 5,500+ clients
+              and 700,000+ employees across 170+ countries.
+            </p>
+            <div className="cta-row">
+              <a
+                className="btn btn-primary"
+                href="https://www.linkedin.com/in/weilies-chok/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Connect on LinkedIn
+              </a>
+              <a className="btn btn-ghost" href="mailto:weilies.chok@gmail.com">
+                Email me
+              </a>
+            </div>
+          </div>
 
-        <section className="flex flex-col gap-6">
-          <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
-            Weilies Chok.
-            <br />
-            <span className="text-cyan-neon">Product Manager</span> by day.
-            <br />
-            <span className="text-purple-neon">Indie game builder</span> by night.
-          </h1>
+          <div className="hero-diagram">
+            <svg
+              viewBox="0 0 520 380"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-label="Diagram of systems integrated into the BIPO platform"
+            >
+              <path className="trace live" d="M75,90 C130,150 180,220 226,296" />
+              <path className="trace live" d="M175,42 C205,120 232,200 250,304" />
+              <path className="trace live" d="M355,42 C320,120 292,200 274,304" />
+              <path className="trace live" d="M455,90 C395,150 342,220 296,296" />
+              <path className="trace building" d="M260,118 L260,282" />
 
-          <p className="text-base sm:text-lg text-gray-300 leading-relaxed">
-            Two worlds, one obsession — making things <span className="text-gray-100">simpler</span> for
-            the people who use them. By day, that means cutting friction inside the enterprise.
-            By night, it means cutting friction between a player and pure fun.
+              <circle className="node-dot" cx="75" cy="90" r="5" />
+              <text className="node-label" x="75" y="72" textAnchor="middle">LARKSUITE / FEISHU</text>
+
+              <circle className="node-dot" cx="175" cy="42" r="5" />
+              <text className="node-label" x="175" y="26" textAnchor="middle">WORKDAY</text>
+
+              <circle className="node-dot" cx="355" cy="42" r="5" />
+              <text className="node-label" x="355" y="26" textAnchor="middle">DOCUSIGN</text>
+
+              <circle className="node-dot" cx="455" cy="90" r="5" />
+              <text className="node-label" x="455" y="72" textAnchor="middle">MOKA</text>
+
+              <circle className="node-dot building" cx="260" cy="112" r="5" />
+              <text className="node-label" x="260" y="96" textAnchor="middle">WECOM / DINGTALK</text>
+
+              <circle className="hub-circle" cx="260" cy="320" r="38" />
+              <text className="hub-label" x="260" y="316" textAnchor="middle">BIPO</text>
+              <text
+                className="hub-label"
+                x="260"
+                y="330"
+                textAnchor="middle"
+                style={{ fontSize: "8px", fill: "var(--pf-text-dim)", fontWeight: 400 }}
+              >
+                PLATFORM
+              </text>
+            </svg>
+          </div>
+        </section>
+
+        <section className="stats reveal">
+          <div className="stat">
+            <span className="stat-num">5,500+</span>
+            <span className="stat-label">Clients supported</span>
+          </div>
+          <div className="stat">
+            <span className="stat-num">700,000+</span>
+            <span className="stat-label">Employees on platform</span>
+          </div>
+          <div className="stat">
+            <span className="stat-num">170+</span>
+            <span className="stat-label">Countries covered</span>
+          </div>
+          <div className="stat">
+            <span className="stat-num">200–300</span>
+            <span className="stat-label">Integrations shipped / yr</span>
+          </div>
+        </section>
+
+        <section className="block reveal">
+          <p className="eyebrow">Strengths</p>
+          <h2>What I bring beyond the integration itself.</h2>
+          <div className="systems-grid">
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">Middleware fluency</span>
+              </div>
+              <p className="system-desc">
+                Hands-on across n8n and Workato — the automation layer that sits between BIPO and every
+                client system.
+              </p>
+            </div>
+
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">Office automation</span>
+              </div>
+              <p className="system-desc">
+                Deep working knowledge of enterprise OA platforms, from admin console down to API — not
+                just the integrations built on top.
+              </p>
+            </div>
+
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">Cross-functional leadership</span>
+              </div>
+              <p className="system-desc">
+                Led engineering, sales, and project management teams of 40+ across regions to ship
+                integration programs on schedule.
+              </p>
+            </div>
+
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">Escalation point</span>
+              </div>
+              <p className="system-desc">
+                The person pulled in when a complex integration stalls — diagnosing root cause and getting
+                delivery back on track.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="block reveal">
+          <p className="eyebrow">What I Connect</p>
+          <h2>Six systems, one platform, no drama.</h2>
+          <div className="systems-grid">
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">Larksuite / Feishu</span>
+                <span className="badge live">LIVE</span>
+              </div>
+              <p className="system-desc">OA integration with one of the top three OA platforms in China.</p>
+            </div>
+
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">Workday</span>
+                <span className="badge live">LIVE</span>
+              </div>
+              <p className="system-desc">Auth and the Global Payroll Connector (GPC).</p>
+            </div>
+
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">DocuSign / eSignature</span>
+                <span className="badge live">LIVE</span>
+              </div>
+              <p className="system-desc">
+                Extended for statutory ID verification and compliance as BIPO expanded into Western
+                markets.
+              </p>
+            </div>
+
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">Moka</span>
+                <span className="badge live">LIVE</span>
+              </div>
+              <p className="system-desc">Talent platform integration into the core HRMS.</p>
+            </div>
+
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">WeCom / DingTalk</span>
+                <span className="badge building">BUILDING</span>
+              </div>
+              <p className="system-desc">Rounding out full coverage of APAC&apos;s top three OA platforms.</p>
+            </div>
+
+            <div className="system-card">
+              <div className="system-top">
+                <span className="system-name">Oracle NetSuite</span>
+                <span className="badge building">BUILDING</span>
+              </div>
+              <p className="system-desc">Autonomous agent for integration and upgrade testing.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="block reveal">
+          <p className="eyebrow">Experience</p>
+          <h2>Where this got built.</h2>
+          <ol className="timeline">
+            <li className="tl-item">
+              <span className="tl-date">Aug 2025 — Present</span>
+              <div>
+                <p className="tl-role">Senior Product Manager</p>
+                <p className="tl-org">BIPO, Singapore</p>
+                <p className="tl-desc">
+                  Own integration strategy across BIPO&apos;s global HRMS, EOR, and GPO platform. Act as
+                  internal consultant across regions, guiding Forward Deployment Engineers and deciding
+                  what becomes a platform standard versus a chargeable customization.
+                </p>
+              </div>
+            </li>
+            <li className="tl-item">
+              <span className="tl-date">Apr 2022 — Aug 2025</span>
+              <div>
+                <p className="tl-role">Regional Product Manager</p>
+                <p className="tl-org">BIPO, Singapore</p>
+              </div>
+            </li>
+            <li className="tl-item">
+              <span className="tl-date">Jul 2021 — Apr 2022</span>
+              <div>
+                <p className="tl-role">Regional Product Assistant Manager</p>
+                <p className="tl-org">BIPO, Singapore</p>
+                <p className="tl-desc">
+                  Designed workforce solutions for 800+ MNCs and led solutioning on ERP integrations.
+                </p>
+              </div>
+            </li>
+            <li className="tl-item">
+              <span className="tl-date">Dec 2012 — Jul 2021</span>
+              <div>
+                <p className="tl-role">Senior Analyst</p>
+                <p className="tl-org">Hyflux Ltd, Singapore</p>
+                <p className="tl-desc">
+                  End-to-end app solutioning across HR/Payroll, asset management, and ITSM systems — from
+                  spec to deployment.
+                </p>
+              </div>
+            </li>
+            <li className="tl-item">
+              <span className="tl-date">May 2008 — Dec 2012</span>
+              <div>
+                <p className="tl-role">Human Resources Consultant</p>
+                <p className="tl-org">HRMS Consulting, Singapore</p>
+                <p className="tl-desc">
+                  Led Oracle PeopleSoft implementations and upgrades; trained client teams on advanced
+                  toolkits.
+                </p>
+              </div>
+            </li>
+          </ol>
+          <p className="earlier-note">
+            Earlier: software engineering roles in web platforms and ad-tech, Kuala Lumpur (2005–2008).
           </p>
         </section>
 
-        <section className="grid sm:grid-cols-2 gap-4 text-sm">
-          <a
-            href="https://www.linkedin.com/in/weilies-chok/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group rounded-md border border-gray-800 hover:border-cyan-neon/60 bg-black/40 p-5 flex flex-col gap-3 transition hover:shadow-[0_0_24px_rgba(0,229,255,0.15)]"
-          >
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-neon shadow-[0_0_8px_#00e5ff]" />
-              <div className="text-[10px] uppercase tracking-[0.25em] text-cyan-neon/80">
-                Day — 09:00
-              </div>
-            </div>
-            <div className="text-gray-100 font-semibold">Product Manager</div>
-            <p className="text-gray-400 leading-relaxed">
-              Leading teams to reduce enterprise friction. Designing and integrating
-              workflows across <span className="text-gray-200">SAP SuccessFactors</span>,
-              {" "}<span className="text-gray-200">Workday</span>, and{" "}
-              <span className="text-gray-200">Oracle</span> — so HR, payroll, and
-              ops stop fighting their own tools.
-            </p>
-            <div className="text-[10px] uppercase tracking-[0.25em] text-gray-500 group-hover:text-cyan-neon transition">
-              View on LinkedIn →
-            </div>
-          </a>
-
-          <div className="rounded-md border border-gray-800 bg-black/40 p-5 flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-purple-neon shadow-[0_0_8px_#b366ff]" />
-              <div className="text-[10px] uppercase tracking-[0.25em] text-purple-neon/80">
-                Night — 21:00
-              </div>
-            </div>
-            <div className="text-gray-100 font-semibold">Nexus Arcade</div>
-            <p className="text-gray-400 leading-relaxed">
-              Chasing a kid&apos;s dream — build something{" "}
-              <span className="text-gray-200">simple</span> and{" "}
-              <span className="text-gray-200">fun</span>. Retro-neon browser
-              games. No downloads. No accounts to try. Open. Play. Smile.
-            </p>
-            <a
-              href="https://arcade.nextnovas.com"
-              className="group/cta mt-1 inline-flex items-center justify-center gap-3 rounded-md border border-cyan-neon/60 bg-cyan-neon/5 px-5 py-3 text-cyan-neon transition hover:bg-cyan-neon/10 hover:border-cyan-neon hover:shadow-[0_0_24px_rgba(0,229,255,0.35)]"
-            >
-              <span className="font-bold tracking-widest text-sm">INSERT COIN →</span>
-              <span className="text-[10px] opacity-70 group-hover/cta:opacity-100">
-                arcade.nextnovas.com
-              </span>
-            </a>
+        <section className="block reveal">
+          <p className="eyebrow">Capabilities</p>
+          <div className="tag-row">
+            <span className="tag">Negotiation</span>
+            <span className="tag">Agentic AI Development</span>
+            <span className="tag">Agentic Automation</span>
+            <span className="tag">Integration Architecture</span>
+            <span className="tag">Cross-region Delivery</span>
+            <span className="tag">Middleware (Workato, n8n)</span>
+          </div>
+          <div className="cert-row">
+            <span>GDPR Advanced</span>
+            <span>Privacy by Design</span>
+            <span>GDPR for Senior Staff Members</span>
+            <span>G Suite Administrator Fundamentals</span>
+            <span>SharePoint Online for Administrator</span>
           </div>
         </section>
 
-        <footer className="mt-auto pt-12 flex flex-col sm:flex-row gap-6 sm:items-center sm:justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-5">
-            <a
-              href="https://github.com/weilies"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-cyan-neon transition inline-flex items-center gap-2"
-              aria-label="GitHub"
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-                <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
-              </svg>
-              GitHub
-            </a>
-            <a
-              href="https://www.linkedin.com/in/weilies-chok/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-cyan-neon transition inline-flex items-center gap-2"
-              aria-label="LinkedIn"
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-                <path d="M13.63 13.63h-2.37V9.92c0-.89-.02-2.03-1.23-2.03-1.24 0-1.43.97-1.43 1.97v3.77H6.23V6h2.28v1.04h.03c.32-.6 1.09-1.23 2.25-1.23 2.41 0 2.85 1.58 2.85 3.65v4.17ZM3.56 4.96a1.37 1.37 0 1 1 0-2.75 1.37 1.37 0 0 1 0 2.75Zm1.18 8.67H2.37V6h2.37v7.63ZM14.82 0H1.18C.53 0 0 .52 0 1.16v13.68C0 15.48.53 16 1.18 16h13.64c.65 0 1.18-.52 1.18-1.16V1.16C16 .52 15.47 0 14.82 0Z"/>
-              </svg>
+        <section className="block reveal">
+          <p className="eyebrow">Education</p>
+          <div className="edu-card">
+            <div>
+              <p className="edu-school">Tunku Abdul Rahman University College</p>
+              <p className="edu-degree">Bachelor&apos;s Degree, Computer Science</p>
+            </div>
+            <span className="edu-date">2001 — 2005</span>
+          </div>
+        </section>
+      </main>
+
+      <footer className="pf-footer">
+        <div className="wrap footer-inner">
+          <p className="footer-tag">Every integration ships with a rollback plan.</p>
+          <div className="footer-links">
+            <a href="mailto:weilies.chok@gmail.com">Email</a>
+            <a href="https://www.linkedin.com/in/weilies-chok/" target="_blank" rel="noopener noreferrer">
               LinkedIn
             </a>
-            <a
-              href="mailto:weilies.chok@gmail.com"
-              className="hover:text-cyan-neon transition"
-            >
-              Email
+            <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+              Résumé
             </a>
           </div>
-          <div className="tracking-widest">© {new Date().getFullYear()} NEXTNOVAS</div>
-        </footer>
-      </div>
-    </main>
+        </div>
+      </footer>
+    </div>
   );
 }
