@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "./portfolio.css";
 
@@ -72,9 +73,17 @@ export default function Home() {
       <header className="pf-nav">
         <div className="pf-nav-inner">
           <span className="pf-logo">WEILIES CHOK</span>
-          <a className="pf-nav-resume" href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-            Résumé ↓
-          </a>
+          <nav className="pf-nav-links">
+            <Link className="pf-nav-resume" href="/about">
+              About
+            </Link>
+            <Link className="pf-nav-resume" href="/projects">
+              Projects
+            </Link>
+            <a className="pf-nav-resume" href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+              Résumé ↓
+            </a>
+          </nav>
         </div>
       </header>
 

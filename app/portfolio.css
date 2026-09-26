@@ -267,6 +267,16 @@
 .pf-root .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .pf-root .reveal.in-view { opacity: 1; transform: translateY(0); }
 
+/* ---------- SECONDARY PAGES (About / Projects) ---------- */
+.pf-root .pf-nav-links { display: flex; align-items: center; gap: 10px; }
+.pf-root .page-main { padding: 72px 0 88px; }
+.pf-root .page-title { font-size: clamp(2rem, 4.5vw, 2.8rem); margin-bottom: 28px; }
+.pf-root .prose { display: grid; gap: 18px; max-width: 62ch; font-size: 1.02rem; color: var(--pf-text-dim); }
+.pf-root .prose strong { color: var(--pf-text); }
+.pf-root .page-main .systems-grid { margin-top: 32px; }
+.pf-root .page-main .cta-row { margin-top: 36px; }
+.pf-root a.system-card { display: block; text-decoration: none; }
+
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 860px) {
   .pf-root .hero { grid-template-columns: 1fr; padding-top: 56px; }
