@@ -52,7 +52,7 @@ export default function Projects() {
         <div className="systems-grid">
           <a
             className="system-card"
-            href="https://habithacker.nextnovas.com"
+            href="https://habit-hacker-ivory.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
           >
