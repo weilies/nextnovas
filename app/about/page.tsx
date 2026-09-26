@@ -62,9 +62,9 @@ export default function About() {
             instead of asking whether the habit was ever sized right to begin with.
           </p>
           <p>
-            Next, I&apos;m exploring <strong>Tolong Alih</strong> — a problem very specific to Malaysia and
-            Indonesia: the double-parked car blocking everyone in, and the scramble to track down a stranger
-            to move it.
+            <strong>Tolong Alih</strong> is another — a problem very specific to Malaysia and Indonesia: the
+            double-parked car blocking everyone in, and the scramble to track down a stranger to move it,
+            solved without either driver ever seeing the other&apos;s phone number.
           </p>
           <p>
             If any of that&apos;s useful to you — or you just want to see what a PM builds when nobody&apos;s

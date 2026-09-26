@@ -4,7 +4,7 @@ import "../portfolio.css";
 
 export const metadata = {
   title: "Projects — Weilies Chok",
-  description: "Weekend B2C hobby projects: Habit Hacker, and what's coming next.",
+  description: "Weekend B2C hobby projects: Habit Hacker and Tolong Alih.",
 };
 
 const spaceGrotesk = Space_Grotesk({
@@ -66,16 +66,16 @@ export default function Projects() {
             </p>
           </a>
 
-          <div className="system-card">
+          <a className="system-card" href="https://alih.nextnovas.com" target="_blank" rel="noopener noreferrer">
             <div className="system-top">
               <span className="system-name">Tolong Alih</span>
-              <span className="badge building">BUILDING</span>
+              <span className="badge live">LIVE</span>
             </div>
             <p className="system-desc">
-              Malaysia &amp; Indonesia&apos;s double-parked-car problem — a faster way to reach whoever&apos;s
-              blocking you in.
+              Double parking, sorted — the blocker declares the block, the blocked driver gets notified or
+              traces it by plate. Neither side ever sees the other&apos;s phone number.
             </p>
-          </div>
+          </a>
         </div>
       </main>
 
