@@ -37,6 +37,12 @@ If a change seems to require editing anything above, stop and ask before doing i
 - Fonts load via `next/font/google` in `page.tsx` (Space Grotesk / Inter /
   JetBrains Mono), exposed as CSS vars `--pf-font-display / -body / -mono`.
 
+## Platform map — `docs/architecture.md`
+This repo holds the architecture doc for **every** Next Novas app (hosting,
+databases, sign-in, environments) and the platform rules — including "new apps
+go on Cloudflare, not Vercel". Whenever any app's stack changes, update that
+file in the same piece of work, and add a line to its changelog.
+
 ## Before you commit
 1. `npx tsc --noEmit` must pass.
 2. `npm run build` should succeed (Vercel runs this — it needs network for
