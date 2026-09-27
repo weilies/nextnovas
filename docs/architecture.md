@@ -24,6 +24,11 @@ _Last updated: 2026-09-27_
    turning on any paid tier, on any service.
 6. **Supabase is not used.** Tolong Alih left it on 2026-09-27; nothing depends
    on it.
+7. **No real users or data yet → edits need no confirmation.** Until an app has
+   production users or data worth keeping, Claude proceeds with schema changes,
+   data cleanup, branch creation and deploys without asking first. Anything
+   that costs money, or deletes a whole project/account, still gets asked.
+   Revisit this rule per app the day it gets its first real user.
 
 ## Apps and environments
 
