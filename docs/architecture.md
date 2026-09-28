@@ -5,7 +5,7 @@ under nextnovas.com. **Keep it true:** any change to an app's stack (host, DB,
 auth, domain, environments) updates this file in the same piece of work. Each
 app repo's `CLAUDE.md` points here and carries the same rule.
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-09-28_
 
 ## Platform rules
 
@@ -38,9 +38,9 @@ _Last updated: 2026-09-27_
 | ↳ `/bp` BP tracker | prod | nextnovas.com/bp | same app | same | Upstash Redis (via Vercel KV), Vercel Blob | own session cookie + Resend email | live, personal |
 | Tolong Alih | UAT | uat.alih.nextnovas.com | `weilies/tolong-alih` → `develop` | Cloudflare Worker `tolong-alih-uat` | Neon `tolong-alih`, branch `uat` | Neon Auth (`uat`) | live |
 | Tolong Alih | prod | alih.nextnovas.com | `weilies/tolong-alih` → `main` | Cloudflare Worker `tolong-alih` | Neon `tolong-alih`, branch `main` | Neon Auth (`main`) | live |
-| Habit Hacker | UAT | uat.habit-hacker.nextnovas.com | `weilies/habit-hacker` → `develop` | Cloudflare Worker `habit-hacker-uat` | Neon `habit-hacker`, branch `uat` | Neon Auth (`uat`) | configured, first deploy pending |
-| Habit Hacker | prod | habit-hacker.nextnovas.com | `weilies/habit-hacker` → `main` | Cloudflare Worker `habit-hacker` | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | configured, first deploy pending |
-| Habit Hacker | legacy | habit-hacker-ivory.vercel.app | `weilies/habit-hacker` → `claude/sync-code-github-8v0z5c` | Vercel `habit-hacker` (Hobby) | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | live until Cloudflare cutover, then delete |
+| Habit Hacker | UAT | uat.habit-hacker.nextnovas.com | `weilies/habit-hacker` → `develop` | Cloudflare Worker `habit-hacker-uat` | Neon `habit-hacker`, branch `uat` | Neon Auth (`uat`) | live |
+| Habit Hacker | prod | habit-hacker.nextnovas.com | `weilies/habit-hacker` → `main` | Cloudflare Worker `habit-hacker` | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | live |
+| Habit Hacker | legacy | habit-hacker-ivory.vercel.app | `weilies/habit-hacker` → `claude/sync-code-github-8v0z5c` | Vercel `habit-hacker` (Hobby) | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | superseded — delete the Vercel project |
 | cikgu-bm | — | — | runs locally only | Vercel `cikgu-bm` (idle) | ? | ? | dormant — ignore, do not delete |
 
 ## Per app
@@ -110,6 +110,9 @@ Vercel → Storage.
 
 ## Changelog
 
+- **2026-09-28** — Habit Hacker live on Cloudflare Workers (UAT and prod);
+  portfolio Projects card now points at habit-hacker.nextnovas.com. Vercel
+  project left for deletion.
 - **2026-09-27** — Tolong Alih production moved from Supabase to Neon `main`;
   Supabase fully retired. Habit Hacker ported to Cloudflare Workers with a new
   UAT environment (Neon branch `uat`); cutover from Vercel pending secrets.
