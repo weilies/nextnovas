@@ -105,18 +105,35 @@ Two things to know:
   nothing today. Before the first paid Neon plan, consider a Neon-native org
   (billed by Neon directly) for commercial apps.
 
-Unused: Neon project `neon-pink-lamp` (US East, empty) — safe to delete from
-Vercel → Storage.
+Unused: Neon project `neon-pink-lamp` (`billowing-fog-57737827`, US East) — a
+Payload CMS starter from 2025-11-28 (one default page, one untitled post, one
+admin login; nothing since). No Vercel project uses it. Safe to delete from
+Vercel → Storage; the Neon API refuses project deletes in this org.
 
 ## Outstanding
 
-- Vercel `habit-hacker` project: delete once the Cloudflare cutover is
-  confirmed working in a browser (rule 7 still asks first — it's a whole-
-  project delete).
-- `neon-pink-lamp` Neon project (US East, empty): safe to delete.
+Owner approved all of these on 2026-09-29; they need the dashboard because the
+tools available to Claude can't do them.
+
+- **GitHub default branch → `main`** in `weilies/tolong-alih` (currently
+  `claude/push-code-github-hpl0a7`, which predates the Neon move) and
+  `weilies/habit-hacker` (currently `claude/sync-code-github-8v0z5c`). New
+  sessions start from the default branch. Settings → General → Default branch.
+- **Delete Vercel project `habit-hacker`** (`prj_vB0nwLA3NVWRaQ979avtmRUSzrpc`):
+  Settings → Advanced → Delete. It still lists `habit-hacker.nextnovas.com` and
+  `habithacker.nextnovas.com` as domains, but DNS for the first points at the
+  Cloudflare Worker; check `habithacker` (no hyphen) has no CNAME left to
+  Vercel.
+- **Delete Neon project `neon-pink-lamp`** from Vercel → Storage.
+- **Delete merged branches** once the default branch is `main`:
+  `claude/sync-code-github-8v0z5c` (habit-hacker, after the Vercel project is
+  gone — it deploys from it), `claude/push-code-github-hpl0a7` and
+  `claude/neon-migration` (tolong-alih).
 
 ## Changelog
 
+- **2026-09-29** — Found `neon-pink-lamp` holds a Payload CMS starter, not
+  nothing; corrected. Listed the dashboard-only cleanup under Outstanding.
 - **2026-09-29** — Deleted the Cloudflare Access application "All Workers"
   (`all_workers` destination), which put an email-code login in front of every
   Worker on the account; all four app hostnames now load directly. Auth stays
