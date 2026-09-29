@@ -5,7 +5,7 @@ under nextnovas.com. **Keep it true:** any change to an app's stack (host, DB,
 auth, domain, environments) updates this file in the same piece of work. Each
 app repo's `CLAUDE.md` points here and carries the same rule.
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-29_
 
 ## Platform rules
 
@@ -110,17 +110,6 @@ Vercel → Storage.
 
 ## Outstanding
 
-- **Cloudflare Access is blocking the app domains.** A Zero Trust "Access"
-  application on the `cloud-xp` Cloudflare account is gatekeeping requests to
-  `nextnovas.com` (or at least its `habit-hacker` subdomains) with its own
-  email-code login (`cloud-xp.cloudflareaccess.com`) before they ever reach
-  the Worker. Unrelated to Neon Auth. **To fix:** Cloudflare dashboard →
-  Zero Trust → Access controls → Applications → find the entry covering
-  `nextnovas.com` / `habit-hacker` → delete it (or remove its policy). The
-  "Cloudflare" Claude plugin (adds Zero Trust MCP tools) was enabled on
-  2026-09-28 to do this without the dashboard, but needs a fresh chat session
-  to pick up the new tools — do that in a session with no other task; it
-  needs no prior context beyond this paragraph.
 - Vercel `habit-hacker` project: delete once the Cloudflare cutover is
   confirmed working in a browser (rule 7 still asks first — it's a whole-
   project delete).
@@ -128,6 +117,10 @@ Vercel → Storage.
 
 ## Changelog
 
+- **2026-09-29** — Deleted the Cloudflare Access application "All Workers"
+  (`all_workers` destination), which put an email-code login in front of every
+  Worker on the account; all four app hostnames now load directly. Auth stays
+  with each app (Neon Auth for Habit Hacker and Tolong Alih).
 - **2026-09-28** — Habit Hacker live on Cloudflare Workers (UAT and prod);
   portfolio Projects card now points at habit-hacker.nextnovas.com. Vercel
   project left for deletion.
