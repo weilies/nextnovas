@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Weilies Chok — Product Manager, Integration & Platform Strategy",
+  title: "Next Novas — Weilies Chok",
   description:
     "Weilies Chok. Senior Product Manager at BIPO, leading integration strategy across a global HRMS, EOR, and GPO platform serving 5,500+ clients in 170+ countries.",
   openGraph: {
