@@ -5,7 +5,7 @@ under nextnovas.com. **Keep it true:** any change to an app's stack (host, DB,
 auth, domain, environments) updates this file in the same piece of work. Each
 app repo's `CLAUDE.md` points here and carries the same rule.
 
-_Last updated: 2026-09-29_
+_Last updated: 2026-10-07_
 
 ## Platform rules
 
@@ -29,6 +29,16 @@ _Last updated: 2026-09-29_
    data cleanup, branch creation and deploys without asking first. Anything
    that costs money, or deletes a whole project/account, still gets asked.
    Revisit this rule per app the day it gets its first real user.
+   **Tolong Alih has passed that day (launching October 2026):** on its `main`
+   branch Claude never deletes users, profiles, cars or blocks, and states any
+   other destructive SQL and waits for a yes. Test-account cleanup is for `uat`.
+8. **One brand, one Google consent screen.** Every app signs in with Google
+   through the single GCP project **Next Novas** (one consent screen, name and
+   logo "Next Novas"), with one OAuth client per app per environment. The
+   privacy policy and terms the consent screen links to are the umbrella pages
+   on www.nextnovas.com (`/privacy`, `/terms`), which carry one section per app.
+   **A new app adds its own section there before it signs anyone in with
+   Google.**
 
 ## Apps and environments
 
@@ -47,13 +57,22 @@ _Last updated: 2026-09-29_
 
 ### Portfolio — nextnovas.com
 - Next.js 14 App Router + Tailwind, `app/page.tsx`, `/about`, `/projects`.
+- `/privacy` ("Next Novas Privacy Policy") and `/terms` ("Next Novas Terms of
+  Use"): the umbrella legal pages for every Next Novas app, server-rendered
+  (`app/privacy`, `app/terms`, shared frame `app/legal/Shell.tsx`). Common part
+  (who runs it, Google user data and Limited Use, sharing, storage, retention
+  and deletion within 30 days, cookies, children) plus a section per app —
+  today Tolong Alih only. The homepage has a "Next Novas" section linking them.
+  These URLs are what the Google consent screen's Branding fields hold; do not
+  move or rename them.
 - `/bp` is a separate personal sub-app sharing the deployment: Upstash Redis
   through the Vercel KV integration (`KV_REST_API_*` / `UPSTASH_REDIS_REST_*`),
   Vercel Blob for uploads, Resend for email, `AUTH_SECRET` for its session.
 
 ### Tolong Alih — alih.nextnovas.com
-- Front end: one static `public/index.html` (+ `admin.html`, `about.html`), no
-  build step. Worker `src/worker.js` serves `/config.js` and proxies Neon Auth
+- Front end: one static `public/index.html` (+ `admin.html`, `about.html`,
+  `start.html`, `terms.html`, `privacy.html`), no build step, one shared
+  header and bottom bar (`public/chrome.css`). Worker `src/worker.js` serves `/config.js` and proxies Neon Auth
   (`/api/auth/*`) and the Data API (`/api/rest/*`) from the app's own origin so
   the session cookie is first-party (iOS Safari drops third-party cookies).
 - Data: Neon Data API (PostgREST) straight from the browser, guarded by RLS and
@@ -85,8 +104,8 @@ _Last updated: 2026-09-29_
 | Domain, DNS | Cloudflare (registrar + DNS) for `nextnovas.com` | Workers with `custom_domain: true` create their own DNS record and certificate on deploy. Vercel-hosted names need a manual CNAME to `cname.vercel-dns.com` (DNS only). |
 | App hosting | Cloudflare Workers (apps), Vercel Hobby (portfolio) | See rules 1–2. |
 | Postgres + auth | Neon, free plan, Singapore | Each branch's compute scales to zero after 5 min idle; the first request after that pays ~0.5 s to wake it. Changing that timeout needs a paid plan. |
-| Google sign-in | Neon's shared Google credentials on every branch | Before a real launch, switch each app to its own OAuth client in GCP project `cloud-xp` (Next Novas brand) so the consent screen shows Next Novas. |
-| Email (auth) | Neon's shared sender `auth@mail.myneon.app` | Custom sender/SMTP is a Neon Auth setting per branch. |
+| Google sign-in | Own OAuth clients in the GCP project **Next Novas**, one per app per environment (Tolong Alih UAT and Production are done) | One consent screen for the whole project: "Next Novas" name and logo, privacy and terms on www.nextnovas.com, authorized domain `nextnovas.com`, published In production with basic scopes only. The client's redirect URI is the callback Neon shows for that branch. Habit Hacker still on Neon's shared credentials until its client is added. |
+| Email (auth) | Neon's shared sender `auth@mail.myneon.app` | Custom sender/SMTP is a Neon Auth setting per branch. Tolong Alih requires email verification (six-digit code) on `uat` and `main`; Neon Auth settings are per branch, so check both. |
 | CI/CD | GitHub Actions per repo | Push to `develop`/`main` deploys; no manual steps. |
 
 ### About the Neon org
@@ -115,10 +134,14 @@ Vercel → Storage; the Neon API refuses project deletes in this org.
 Owner approved all of these on 2026-09-29; they need the dashboard because the
 tools available to Claude can't do them.
 
-- **GitHub default branch → `main`** in `weilies/tolong-alih` (currently
-  `claude/push-code-github-hpl0a7`, which predates the Neon move) and
-  `weilies/habit-hacker` (currently `claude/sync-code-github-8v0z5c`). New
-  sessions start from the default branch. Settings → General → Default branch.
+- **GitHub default branch → `main`** in `weilies/habit-hacker` (currently
+  `claude/sync-code-github-8v0z5c`). New sessions start from the default branch.
+  Settings → General → Default branch. (`weilies/tolong-alih` is done.)
+- **Habit Hacker and Google sign-in:** add its section to `/privacy` and `/terms`
+  here, then create "Habit Hacker UAT" and "Habit Hacker Production" OAuth
+  clients in the Next Novas GCP project and switch its Neon Auth branches to them.
+- **Domain ownership for the consent-screen logo:** done only if Search Console
+  shows `nextnovas.com` verified; check if the logo is missing on the Google screen.
 - **Delete Vercel project `habit-hacker`** (`prj_vB0nwLA3NVWRaQ979avtmRUSzrpc`):
   Settings → Advanced → Delete. It still lists `habit-hacker.nextnovas.com` and
   `habithacker.nextnovas.com` as domains, but DNS for the first points at the
@@ -132,6 +155,16 @@ tools available to Claude can't do them.
 
 ## Changelog
 
+- **2026-10-07** — Tolong Alih launched toward production: shared header and
+  bottom bar, no phone number, bell for alerts, owner-only ads console, Contact
+  topics, `privacy.html`, same two footer links on every page; email
+  verification required on both Neon branches (it had been off on `uat`).
+  Google sign-in moved off Neon's shared credentials to Next Novas OAuth clients
+  in one GCP project, one consent screen. Added umbrella `/privacy` and `/terms`
+  to the portfolio, platform rule 8, and the no-deletes-on-production rule for
+  Tolong Alih. Branch protection is on for `main` and `develop` in
+  `tolong-alih`, and the deploy applies the schema (the `NEON_DATABASE_URL`
+  environment secrets are set).
 - **2026-09-29** — Found `neon-pink-lamp` holds a Payload CMS starter, not
   nothing; corrected. Listed the dashboard-only cleanup under Outstanding.
 - **2026-09-29** — Deleted the Cloudflare Access application "All Workers"
