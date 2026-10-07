@@ -109,6 +109,12 @@ export default function Privacy() {
           the app sends your approximate position to OpenStreetMap.
         </li>
         <li>
+          <strong>The state you open the app from:</strong> once a day, when you open the app signed in,
+          we note which state you are in (for example Selangor), never your exact position. We use it to
+          count how many drivers use the app each day and, as totals only, to show local shops roughly
+          where drivers are.
+        </li>
+        <li>
           <strong>Your phone&apos;s alert address:</strong> a code your browser gives us so we can send
           you alerts. It is not your phone number. We do not ask for your phone number.
         </li>
