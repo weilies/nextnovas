@@ -104,8 +104,9 @@ export default function Privacy() {
           messages in them, so the two drivers can sort it out.
         </li>
         <li>
-          <strong>Location:</strong> your position when you declare a block, and your approximate position
-          to show the place name at the top of the app. Other drivers never see it. To show the place name,
+          <strong>Location:</strong> your position when you declare a block, with the road, area, city and
+          state of the place, and your approximate position to show the place name at the top of the app.
+          Other drivers never see it. To show the place name,
           the app sends your approximate position to OpenStreetMap.
         </li>
         <li>
@@ -124,6 +125,12 @@ export default function Privacy() {
           advertise see only totals, never who.
         </li>
       </ul>
+      <p>
+        We may share <strong>totals</strong> with local councils and other public bodies to help plan
+        parking, for example how many blocks happened on a road and how long they lasted. We never share
+        plates, names, emails or accounts. When you create an account you tick a box to agree to our terms
+        and this policy, and we keep a record of which version you agreed to.
+      </p>
       <p>
         The other driver sees your car plate and a short message such as &quot;back in 15 min&quot;. They
         do not see your name or email. Tolong Alih&apos;s own plain-words notes are at{" "}
