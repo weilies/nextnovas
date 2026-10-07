@@ -294,3 +294,10 @@
 @media (prefers-reduced-motion: reduce) {
   .pf-root * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
 }
+
+/* Legal pages (/privacy, /terms) */
+.pf-root .prose.legal { max-width: 70ch; gap: 14px; }
+.pf-root .prose.legal h2 { margin: 18px 0 0; font-family: var(--pf-font-display); font-size: 1.15rem; color: var(--pf-text); scroll-margin-top: 80px; }
+.pf-root .prose.legal ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 8px; }
+.pf-root .prose.legal a { color: var(--pf-copper); text-decoration: underline; text-underline-offset: 3px; }
+.pf-root .prose.legal em { color: var(--pf-text-dim); }

@@ -367,6 +367,29 @@ export default function Home() {
             <span className="edu-date">2001 — 2005</span>
           </div>
         </section>
+        <section className="block reveal" id="next-novas">
+          <p className="eyebrow">Weekend projects</p>
+          <h2>Next Novas</h2>
+          <p className="system-desc" style={{ marginBottom: 20 }}>
+            Next Novas is the home of my small consumer apps, built on weekends. It is one brand with one
+            privacy policy and one set of terms.
+          </p>
+          <div className="tag-row">
+            <a className="tag" href="https://alih.nextnovas.com" target="_blank" rel="noopener noreferrer">
+              Tolong Alih
+            </a>
+            <Link className="tag" href="/projects">
+              All projects
+            </Link>
+            <Link className="tag" href="/privacy">
+              Privacy policy
+            </Link>
+            <Link className="tag" href="/terms">
+              Terms of use
+            </Link>
+          </div>
+        </section>
+
       </main>
 
       <footer className="pf-footer">
@@ -380,6 +403,8 @@ export default function Home() {
             <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
               Résumé
             </a>
+            <Link href="/terms">Terms</Link>
+            <Link href="/privacy">Privacy</Link>
           </div>
         </div>
       </footer>
