@@ -23,7 +23,7 @@ export default function Terms() {
       <h2>Our promise</h2>
       <ul>
         <li>We never sell your data.</li>
-        <li>No advertising networks and no tracking scripts in our apps.</li>
+        <li>No advertising networks in our apps. We use Google Analytics to count visits, as the privacy policy explains.</li>
         <li>
           What we keep and why is in our <a href="/privacy">privacy policy</a>.
         </li>

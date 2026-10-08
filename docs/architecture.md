@@ -39,6 +39,14 @@ _Last updated: 2026-10-07_
    on www.nextnovas.com (`/privacy`, `/terms`), which carry one section per app.
    **A new app adds its own section there before it signs anyone in with
    Google.**
+9. **Analytics is Google Analytics 4, one property per app.** Create the property
+   and a web data stream for the app's production host, turn Google signals off,
+   set event retention to 14 months, and put the `G-` id in that app's config
+   (Tolong Alih: `GA_MEASUREMENT_ID` in `wrangler.jsonc`; UAT stays empty so test
+   traffic never counts). Host-only cookie, no ad features, Do Not Track respected,
+   no personal data in events. The umbrella `/privacy` covers every app; update it
+   if an app sends anything new. Anonymous visitors are counted by GA, signed-in
+   activity by the app's own database.
 
 ## Apps and environments
 
@@ -155,6 +163,7 @@ tools available to Claude can't do them.
 
 ## Changelog
 
+- **2026-10-08** — Google Analytics adopted, one GA4 property per app (rule 9). Umbrella `/privacy` and `/terms` no longer say there are no analytics scripts and gained an Analytics section. Tolong Alih ships `public/analytics.js` behind an empty `GA_MEASUREMENT_ID` until its property exists.
 - **2026-10-07** — Tolong Alih launched toward production: shared header and
   bottom bar, no phone number, bell for alerts, owner-only ads console, Contact
   topics, `privacy.html`, same two footer links on every page; email

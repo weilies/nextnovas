@@ -45,7 +45,7 @@ export default function Privacy() {
       <h2>What we never do</h2>
       <ul>
         <li>We never sell your data.</li>
-        <li>We use no advertising networks and no tracking or analytics scripts in our apps.</li>
+        <li>We use no advertising networks in our apps.</li>
         <li>We do not use your information to target you with ads.</li>
       </ul>
 
@@ -53,10 +53,42 @@ export default function Privacy() {
       <p>
         We share your information only with the services that run our apps for us, and only so they can do
         that job: <strong>Cloudflare</strong> (hosting), <strong>Neon</strong> (database and sign-in,
-        servers in Singapore), <strong>Vercel</strong> (this website) and <strong>Google</strong> (if you
-        choose Google sign-in). We also share information if the law requires it. Each app&apos;s section
+        servers in Singapore), <strong>Vercel</strong> (this website) and <strong>Google</strong> (analytics,
+        and sign-in if you choose it). We also share information if the law requires it. Each app&apos;s section
         below lists anything else that app shares.
       </p>
+
+      <h2 id="analytics">Analytics (Google Analytics)</h2>
+      <p>
+        Our apps use Google Analytics to understand how people find and use them, so we can improve them
+        and tell which posts and links bring people in. Google receives the pages you open, your device,
+        browser and language, your approximate area (from your connection, not from GPS), how you reached
+        us (for example a link or a post), and a random ID kept in a cookie. We never send your name,
+        email, car plate, exact position or anything else that identifies you.
+      </p>
+      <ul>
+        <li>
+          <strong>Separate for each app.</strong> Every Next Novas app has its own analytics property and
+          its own cookie on its own address, so one app&apos;s numbers are never mixed with another&apos;s
+          and we do not follow you from one app to another.
+        </li>
+        <li>
+          We switch off Google&apos;s advertising features: no ad personalisation, and no linking to your
+          Google account.
+        </li>
+        <li>
+          Google keeps this data for up to 14 months. Its cookies (named _ga and _ga_…) last up to two
+          years.
+        </li>
+        <li>
+          We respect your browser&apos;s Do Not Track and Global Privacy Control settings. You can also
+          install{" "}
+          <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">
+            Google&apos;s opt-out add-on
+          </a>
+          , or email us to be left out.
+        </li>
+      </ul>
 
       <h2>Storage and security</h2>
       <p>
@@ -77,7 +109,7 @@ export default function Privacy() {
       <h2>Cookies and storage on your device</h2>
       <p>
         Our apps use a sign-in cookie to keep you signed in, and your browser&apos;s storage to remember
-        small settings such as your language. We use no advertising or analytics cookies.
+        small settings such as your language. Google Analytics adds its own cookies (see above). We use no advertising cookies.
       </p>
 
       <h2>Children</h2>
