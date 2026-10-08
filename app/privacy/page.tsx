@@ -160,8 +160,8 @@ export default function Privacy() {
       <p>
         We may share <strong>totals</strong> with local councils and other public bodies to help plan
         parking, for example how many blocks happened on a road and how long they lasted. We never share
-        plates, names, emails or accounts. When you create an account you tick a box to agree to our terms
-        and this policy, and we keep a record of which version you agreed to.
+        plates, names, emails or accounts. By creating an account or continuing with Google you agree to our
+        terms and this policy, and we keep a record of which version you agreed to.
       </p>
       <p>
         The other driver sees your car plate and a short message such as &quot;back in 15 min&quot;. They
