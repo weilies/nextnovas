@@ -5,7 +5,7 @@ under nextnovas.com. **Keep it true:** any change to an app's stack (host, DB,
 auth, domain, environments) updates this file in the same piece of work. Each
 app repo's `CLAUDE.md` points here and carries the same rule.
 
-_Last updated: 2026-10-07_
+_Last updated: 2026-10-11_
 
 ## Platform rules
 
@@ -56,6 +56,8 @@ _Last updated: 2026-10-07_
 | ↳ `/bp` BP tracker | prod | nextnovas.com/bp | same app | same | Upstash Redis (via Vercel KV), Vercel Blob | own session cookie + Resend email | live, personal |
 | Tolong Alih | UAT | uat.alih.nextnovas.com | `weilies/tolong-alih` → `develop` | Cloudflare Worker `tolong-alih-uat` | Neon `tolong-alih`, branch `uat` | Neon Auth (`uat`) | live |
 | Tolong Alih | prod | alih.nextnovas.com | `weilies/tolong-alih` → `main` | Cloudflare Worker `tolong-alih` | Neon `tolong-alih`, branch `main` | Neon Auth (`main`) | live |
+| Stack On Me | UAT | uat.stack.nextnovas.com | `weilies/Stack-On-Me` → `develop` | Cloudflare Worker `stack-on-me-uat` | — (localStorage only) | — | pending first deploy (needs repo secrets) |
+| Stack On Me | prod | stack.nextnovas.com | `weilies/Stack-On-Me` → `main` | Cloudflare Worker `stack-on-me` | — (Neon planned: player-made chapters) | — | pending first deploy (needs repo secrets) |
 | Habit Hacker | UAT | uat.habit-hacker.nextnovas.com | `weilies/habit-hacker` → `develop` | Cloudflare Worker `habit-hacker-uat` | Neon `habit-hacker`, branch `uat` | Neon Auth (`uat`) | live |
 | Habit Hacker | prod | habit-hacker.nextnovas.com | `weilies/habit-hacker` → `main` | Cloudflare Worker `habit-hacker` | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | live |
 | Habit Hacker | legacy | habit-hacker-ivory.vercel.app | `weilies/habit-hacker` → `claude/sync-code-github-8v0z5c` | Vercel `habit-hacker` (Hobby) | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | superseded — delete the Vercel project |
@@ -104,6 +106,13 @@ _Last updated: 2026-10-07_
   GitHub Environments `production` / `uat` hold `DATABASE_URL` and
   `NEON_AUTH_COOKIE_SECRET`, synced to worker secrets on each deploy; repo
   secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+
+### Stack On Me — stack.nextnovas.com
+- Physics puzzle game, one static `public/index.html` plus bundled Matter.js; no build step. `src/worker.js` only serves `/config.js` (env and release label).
+- Two workers from two configs (`wrangler.jsonc`, `wrangler.uat.jsonc`), custom-domain routes created on deploy. Repo secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (same values as Tolong Alih).
+- Flow as Tolong Alih: `develop` deploys UAT, `main` deploys production and tags `release-YYYY.MM.DD-N`; CI runs a Playwright game suite.
+- No database or sign-in yet; progress lives in browser localStorage. When shared chapters start: one Neon project `stack-on-me`, branches `uat` and `main`.
+- Earlier Vercel deployment `stack-on-me` is superseded; delete once the Cloudflare site is live.
 
 ## Shared infrastructure
 
@@ -163,6 +172,7 @@ tools available to Claude can't do them.
 
 ## Changelog
 
+- **2026-10-11** — Stack On Me added (static game on Cloudflare Workers, UAT and prod, no database yet).
 - **2026-10-08** — Google Analytics adopted, one GA4 property per app (rule 9). Umbrella `/privacy` and `/terms` no longer say there are no analytics scripts and gained an Analytics section. Tolong Alih ships `public/analytics.js` behind an empty `GA_MEASUREMENT_ID` until its property exists.
 - **2026-10-07** — Tolong Alih launched toward production: shared header and
   bottom bar, no phone number, bell for alerts, owner-only ads console, Contact
