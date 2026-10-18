@@ -61,7 +61,7 @@ _Last updated: 2026-10-18_
 | Habit Hacker | UAT | uat.habit-hacker.nextnovas.com | `weilies/habit-hacker` → `develop` | Cloudflare Worker `habit-hacker-uat` | Neon `habit-hacker`, branch `uat` | Neon Auth (`uat`) | live |
 | Habit Hacker | prod | habit-hacker.nextnovas.com | `weilies/habit-hacker` → `main` | Cloudflare Worker `habit-hacker` | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | live |
 | Habit Hacker | legacy | habit-hacker-ivory.vercel.app | `weilies/habit-hacker` → `claude/sync-code-github-8v0z5c` | Vercel `habit-hacker` (Hobby) | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | superseded — delete the Vercel project |
-| Ledgerline | UAT | uat.ledgerline.nextnovas.com | `weilies/ledgerline` → `uat` | Cloudflare Worker `ledgerline-uat` | Neon `ledgerline`, branch `preview/uat` | own session + built-in IdP (no Neon Auth) | live (first deploy 2026-10-18) |
+| Ledgerline | UAT | uat.ledgerline.nextnovas.com | `weilies/ledgerline` → `develop` | Cloudflare Worker `ledgerline-uat` | Neon `ledgerline`, branch `preview/uat` | own session + built-in IdP (no Neon Auth) | live (first deploy 2026-10-18) |
 | Ledgerline | prod | ledgerline.nextnovas.com | `weilies/ledgerline` → `main` | Cloudflare Worker `ledgerline` | Neon `ledgerline`, branch `main` | same | not set up yet (config in repo, no secrets or release) |
 | cikgu-bm | — | — | runs locally only | Vercel `cikgu-bm` (idle) | ? | ? | dormant — ignore, do not delete |
 
@@ -119,9 +119,9 @@ _Last updated: 2026-10-18_
 ### Ledgerline — ledgerline.nextnovas.com
 - Multi-tenant HR/payroll product. Next.js 16 App Router built for Workers by `@opennextjs/cloudflare`; API handler in `lib/`, server components call it in-process. Daily cron is a Workers cron trigger.
 - Data: `pg` over TCP, one small pool per request, as role `ll_api` (no bypass of row security); Postgres 16 in CI. Migrations apply on the first request after a deploy. Optional Hyperdrive binding not set up.
-- Neon project `ledgerline` (`steep-lab-71369651`): `main` = `br-long-brook-azhqfb1j`, UAT = `preview/uat` (`br-odd-pond-azg0p335`). The `preview/` name comes from the old Vercel integration; renaming it to `uat` would match the other apps and is pending the owner's say-so.
+- Neon project `ledgerline` (`steep-lab-71369651`): `main` = `br-long-brook-azhqfb1j`, UAT = `preview/uat` (`br-odd-pond-azg0p335`). The `preview/` name comes from the old Vercel integration; renaming it to `uat` would match the other apps and is pending (the Neon rename needs a permission the assistant was refused; the owner can do it in the Neon console, host and connection strings do not change).
 - Deploy: `.github/workflows/deploy.yml` picks UAT or production from the branch, checks `/api/ping` shows the new release, tags `release-YYYY.MM.DD-N` on `main` (UAT releases are named `uat-YYYY.MM.DD-N`). `wrangler.jsonc` (prod) / `wrangler.uat.jsonc` (UAT). Cloudflare token and account id are **environment** secrets (`uat`, `production`), not repo secrets; `DATABASE_URL` (as `ll_api`, pooled) and `NEON_DATABASE_URL` (owner, direct) are too. Session, IdP and admin keys are generated on the worker at the first deploy.
-- Differs from the other apps: UAT branch is `uat` (not `develop`); no Neon Auth or Data API; Google sign-in not yet set up, so no privacy/terms section needed here until it is; Workers free plan, so smoke and perf run in CI (workerd), not on the live site.
+- Differs from the other apps: no Neon Auth or Data API; Google sign-in not yet set up, so no privacy/terms section needed here until it is; Workers free plan, so smoke and perf run in CI (workerd), not on the live site.
 - Earlier Vercel project `ledgerline` deleted by the owner 2026-10-18. The Neon integration in Vercel stays (see the Neon org note).
 
 ## Shared infrastructure
@@ -178,7 +178,7 @@ tools available to Claude can't do them.
   Vercel.
 - **Delete Neon project `neon-pink-lamp`** from Vercel → Storage.
 - **Delete Vercel project `alih-push-test`** (`prj_px7p4LG01LKzpwoohElHiJfk0HIA`): a 2026-09-30 push-notification test with three deployments. No reference in `tolong-alih` code; safe to delete.
-- **Ledgerline:** add a card to the portfolio Projects page when it has a public face; rename Neon `preview/uat` to `uat` if the owner agrees (the deploy secrets use the connection strings, so recheck them after); production setup (see the `ledgerline` repo's `OWNER_TODO.md`).
+- **Ledgerline:** add a card to the portfolio Projects page when it has a public face; rename Neon `preview/uat` to `uat` (connection strings do not change); production setup (see the `ledgerline` repo's `OWNER_TODO.md`).
 - **Delete merged branches** once the default branch is `main`:
   `claude/sync-code-github-8v0z5c` (habit-hacker, after the Vercel project is
   gone — it deploys from it), `claude/push-code-github-hpl0a7` and
