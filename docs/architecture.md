@@ -186,7 +186,7 @@ tools available to Claude can't do them.
 
 ## Changelog
 
-- **2026-10-18** — Ledgerline added. UAT live on Cloudflare Workers at uat.ledgerline.nextnovas.com (Neon `preview/uat`); production wired in the repo but not deployed. Moved off Vercel; Vercel project `ledgerline` deleted and the stale per-PR Neon branch removed.
+- **2026-10-18** — Ledgerline added. UAT live on Cloudflare Workers at uat.ledgerline.nextnovas.com (Neon `uat`); production wired in the repo but not deployed. Moved off Vercel; Vercel project `ledgerline` deleted and the stale per-PR Neon branch removed.
 - **2026-10-11** — Stack On Me added (static game on Cloudflare Workers, UAT and prod, no database yet).
 - **2026-10-08** — Google Analytics adopted, one GA4 property per app (rule 9). Umbrella `/privacy` and `/terms` no longer say there are no analytics scripts and gained an Analytics section. Tolong Alih ships `public/analytics.js` behind an empty `GA_MEASUREMENT_ID` until its property exists.
 - **2026-10-07** — Tolong Alih launched toward production: shared header and
