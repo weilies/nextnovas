@@ -61,7 +61,7 @@ _Last updated: 2026-10-18_
 | Habit Hacker | UAT | uat.habit-hacker.nextnovas.com | `weilies/habit-hacker` → `develop` | Cloudflare Worker `habit-hacker-uat` | Neon `habit-hacker`, branch `uat` | Neon Auth (`uat`) | live |
 | Habit Hacker | prod | habit-hacker.nextnovas.com | `weilies/habit-hacker` → `main` | Cloudflare Worker `habit-hacker` | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | live |
 | Habit Hacker | legacy | habit-hacker-ivory.vercel.app | `weilies/habit-hacker` → `claude/sync-code-github-8v0z5c` | Vercel `habit-hacker` (Hobby) | Neon `habit-hacker`, branch `main` | Neon Auth (`main`) | superseded — delete the Vercel project |
-| Ledgerline | UAT | uat.ledgerline.nextnovas.com | `weilies/ledgerline` → `develop` | Cloudflare Worker `ledgerline-uat` | Neon `ledgerline`, branch `uat` | own session + built-in IdP (no Neon Auth) | live (first deploy 2026-10-18) |
+| Ledgerline | UAT | uat.ledgerline.nextnovas.com | `weilies/ledgerline` → `develop` | Cloudflare Worker `ledgerline-uat` | Neon `ledgerline`, branch `uat` | own session + OIDC sign-in (Google, per-tenant IdPs) + OAuth for MCP (no Neon Auth) | live (first deploy 2026-10-18) |
 | Ledgerline | prod | ledgerline.nextnovas.com | `weilies/ledgerline` → `main` | Cloudflare Worker `ledgerline` | Neon `ledgerline`, branch `main` | same | not set up yet (config in repo, no secrets or release) |
 | cikgu-bm | — | — | runs locally only | Vercel `cikgu-bm` (idle) | ? | ? | dormant — ignore, do not delete |
 
@@ -121,7 +121,7 @@ _Last updated: 2026-10-18_
 - Data: `pg` over TCP, one small pool per request, as role `ll_api` (no bypass of row security); Postgres 16 in CI. Migrations apply on the first request after a deploy. Optional Hyperdrive binding not set up.
 - Neon project `ledgerline` (`steep-lab-71369651`): `main` = `br-long-brook-azhqfb1j`, UAT = `uat` (`br-odd-pond-azg0p335`, renamed from `preview/uat` on 2026-10-18; host and connection strings unchanged).
 - Deploy: `.github/workflows/deploy.yml` picks UAT or production from the branch, checks `/api/ping` shows the new release, tags `release-YYYY.MM.DD-N` on `main` (UAT releases are named `uat-YYYY.MM.DD-N`). `wrangler.jsonc` (prod) / `wrangler.uat.jsonc` (UAT). Cloudflare token and account id are **environment** secrets (`uat`, `production`), not repo secrets; `DATABASE_URL` (as `ll_api`, pooled) and `NEON_DATABASE_URL` (owner, direct) are too. Session, IdP and admin keys are generated on the worker at the first deploy.
-- Differs from the other apps: no Neon Auth or Data API; Google sign-in not yet set up, so no privacy/terms section needed here until it is; Workers free plan, so smoke and perf run in CI (workerd), not on the live site.
+- Differs from the other apps: no Neon Auth or Data API. Auth is the app's own session plus an OIDC relying party (`lib/auth.js`): Google sign-in is built (an `sso_providers` row marked `{env:GOOGLE}` reads `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` from environment secrets) but the Next Novas GCP OAuth client for Ledgerline is not created yet (owner to-do), so no privacy/terms section is needed here until it is. MCP clients (claude.ai, Claude Desktop, ChatGPT) connect through the app's own OAuth server (dynamic client registration, authorization code + PKCE; `PUBLIC_ORIGIN` must match the host), plus `llk_` keys and service accounts; Workers free plan, so smoke and perf run in CI (workerd), not on the live site.
 - Earlier Vercel project `ledgerline` deleted by the owner 2026-10-18. The Neon integration in Vercel stays (see the Neon org note).
 
 ## Shared infrastructure
@@ -186,6 +186,7 @@ tools available to Claude can't do them.
 
 ## Changelog
 
+- **2026-10-23** — Ledgerline auth row and section corrected: Google sign-in is built in the app (OAuth client still to be created) and MCP clients connect through the app's own OAuth server.
 - **2026-10-18** — Ledgerline added. UAT live on Cloudflare Workers at uat.ledgerline.nextnovas.com (Neon `uat`); production wired in the repo but not deployed. Moved off Vercel; Vercel project `ledgerline` deleted and the stale per-PR Neon branch removed.
 - **2026-10-11** — Stack On Me added (static game on Cloudflare Workers, UAT and prod, no database yet).
 - **2026-10-08** — Google Analytics adopted, one GA4 property per app (rule 9). Umbrella `/privacy` and `/terms` no longer say there are no analytics scripts and gained an Analytics section. Tolong Alih ships `public/analytics.js` behind an empty `GA_MEASUREMENT_ID` until its property exists.
